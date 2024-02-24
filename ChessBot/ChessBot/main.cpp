@@ -1,24 +1,28 @@
-#include <SFML/Graphics.hpp>
+#include <iostream>
+#include <thread>
+#include "GUIBoard.h"
+
+GUIBoard guiBoard;
+
+void takeInput() {
+    while (guiBoard.isOpen()) {
+        std::string s;
+        std::cin >> s;
+        std::cout << s << std::endl;
+    }
+}
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
-    sf::CircleShape shape(100.f);
-    shape.setFillColor(sf::Color::Green);
+    guiBoard.create();
+    std::thread t(takeInput);
 
-    while (window.isOpen())
+    while (guiBoard.isOpen())
     {
-        sf::Event event;
-        while (window.pollEvent(event))
-        {
-            if (event.type == sf::Event::Closed)
-                window.close();
-        }
-
-        window.clear();
-        window.draw(shape);
-        window.display();
+        guiBoard.draw();
     }
+
+    t.join();
 
     return 0;
 }
