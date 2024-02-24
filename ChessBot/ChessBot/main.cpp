@@ -14,7 +14,11 @@ void takeInput() {
 
 int main()
 {
-    guiBoard.create();
+    if (guiBoard.create()) {
+        std::cout << "An error occured creating the board" << std::endl;
+        return -1;
+    }
+
     std::thread t(takeInput);
 
     while (guiBoard.isOpen())
