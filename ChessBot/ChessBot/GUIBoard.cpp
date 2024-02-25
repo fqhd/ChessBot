@@ -49,6 +49,7 @@ void GUIBoard::drawBackground() {
 		for (int j = 0; j < 8; j++) {
 			square.setPosition(offset + j * TILE_SIZE, i * TILE_SIZE);
 			square.setSize(sf::Vector2f(TILE_SIZE, TILE_SIZE));
+			// Change this based on whether player is playing black or white
 			if ((i + j) % 2) {
 				square.setFillColor(sf::Color(161, 111, 90));
 			}
@@ -60,14 +61,14 @@ void GUIBoard::drawBackground() {
 	}
 }
 
-std::string twoDigit(int n) {
+static std::string twoDigit(int n) {
 	if (n < 10) {
 		return std::string("0") + std::to_string(n);
 	}
 	return std::to_string(n);
 }
 
-std::string timeToString(float t) {
+static std::string timeToString(float t) {
 	int seconds = (int)t % 60;
 	int minutes = (int)(t / 60);
 	std::string secondsText = twoDigit(seconds);

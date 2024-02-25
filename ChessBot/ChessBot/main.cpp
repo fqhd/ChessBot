@@ -4,7 +4,7 @@
 
 GUIBoard guiBoard;
 
-void takeInput() {
+static void takeInput() {
     while (guiBoard.isOpen()) {
         std::string s;
         std::cin >> s;
