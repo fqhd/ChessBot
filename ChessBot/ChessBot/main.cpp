@@ -1,7 +1,9 @@
 #include <iostream>
 #include <thread>
 #include "GUIBoard.h"
+#include "Engine.h"
 
+Engine engine;
 GUIBoard guiBoard;
 
 static void takeInput() {
@@ -19,11 +21,13 @@ int main()
         return -1;
     }
 
+    engine.makeMove();
+
     std::thread t(takeInput);
 
     while (guiBoard.isOpen())
     {
-        guiBoard.draw();
+        guiBoard.draw(engine.getBoard());
     }
 
     t.join();
