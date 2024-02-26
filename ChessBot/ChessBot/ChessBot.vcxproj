@@ -140,6 +140,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="chess.hpp" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="GUIBoard.h" />
   </ItemGroup>

@@ -10,7 +10,7 @@ static void takeInput() {
     while (guiBoard.isOpen()) {
         std::string s;
         std::cin >> s;
-        std::cout << s << std::endl;
+        engine.playMove(s);
     }
 }
 
@@ -20,8 +20,6 @@ int main()
         std::cout << "An error occured creating the board" << std::endl;
         return -1;
     }
-
-    engine.makeMove();
 
     std::thread t(takeInput);
 
