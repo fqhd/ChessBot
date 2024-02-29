@@ -8,6 +8,7 @@ int GUIBoard::create() {
 	mode.width = TILE_SIZE * 14;
 	mode.height = TILE_SIZE * 8;
 	m_window.create(mode, "ChessBot", sf::Style::Default);
+	m_window.setVerticalSyncEnabled(true);
 	m_whiteTime = 300.0f;
 	m_blackTime = 300.0f;
 	if (!m_font.loadFromFile("Roboto-Regular.ttf")) {
@@ -22,7 +23,7 @@ int GUIBoard::create() {
 	return 0;
 }
 
-void GUIBoard::draw(const chess::Board& board) {
+void GUIBoard::draw(const chess::Board& board, chess::Color userColor) {
 	m_window.clear(sf::Color(31, 31, 31));
 	sf::Event e;
 	m_window.pollEvent(e);
@@ -39,7 +40,7 @@ void GUIBoard::draw(const chess::Board& board) {
 
 	drawBackground();
 	drawTime();
-	drawPieces(board);
+	drawPieces(board, userColor);
 
 	m_window.display();
 }
@@ -91,11 +92,45 @@ static int offsetFromPieceType(chess::PieceType type) {
 	return index * chessPieceTextureSize;
 }
 
-void GUIBoard::drawPiece(const chess::Board& board, chess::Color color, const chess::PieceType type) {
-	chess::Bitboard bits = board.us(color) & board.pieces(type);
+static chess::Color oppose(chess::Color c) {
+	if (c == chess::Color::WHITE) {
+		return chess::Color::BLACK;
+	}
+	return chess::Color::WHITE;
+}
+
+
+void GUIBoard::drawPiece(const chess::Board& board, chess::Color userColor, const chess::PieceType type, bool us) {
+	chess::Bitboard bits;
+	chess::Color pieceColor;
+
+	// The idea is to draw the pieces like before but only use us when we are playing white and use them when we are playing black
+	// There is no need to query for whether we are rendering ourselves or the enemy, all we need is the users color(to check whether we should use us or them)
+	// and the color of the pieces we are currently drawing(either black or white)
+
+	if (userColor == chess::Color::WHITE) {
+		if (us) {
+			pieceColor = chess::Color::WHITE;
+		}
+		else {
+			pieceColor = chess::Color::BLACK;
+		}
+		bits = board.us(pieceColor) & board.pieces(type);
+	}
+	else {
+		if (us) {
+			pieceColor = chess::Color::BLACK;
+		}
+		else {
+			pieceColor = chess::Color::WHITE;
+		}
+		bits = board.them(pieceColor) & board.pieces(type);
+	}
+	
 	for (int i = 0; i < 64; i++) {
 		int x = i % 8;
 		int y = (int)(i / 8);
+		y = 7 - y;
 		if ((bits >> i) & 1) {
 			// Draw piece depending on type and color
 			sf::RectangleShape rect;
@@ -103,7 +138,7 @@ void GUIBoard::drawPiece(const chess::Board& board, chess::Color color, const ch
 			rect.setPosition(sf::Vector2f(x * TILE_SIZE + TILE_SIZE * 3, y * TILE_SIZE));
 			int tx_offset = offsetFromPieceType(type);
 			int ty_offset = 0;
-			if (color == chess::Color::BLACK) {
+			if (pieceColor == chess::Color::BLACK) {
 				ty_offset = chessPieceTextureSize;
 			}
 			rect.setTextureRect(sf::IntRect(tx_offset, ty_offset, chessPieceTextureSize, chessPieceTextureSize));
@@ -113,22 +148,21 @@ void GUIBoard::drawPiece(const chess::Board& board, chess::Color color, const ch
 	}
 }
 
-void GUIBoard::drawPieces(const chess::Board& board) {
+void GUIBoard::drawPieces(const chess::Board& board, chess::Color userColor) {
 	// Draw all pawns
-	drawPiece(board, chess::Color::WHITE, chess::PieceType::PAWN);
-	drawPiece(board, chess::Color::WHITE, chess::PieceType::BISHOP);
-	drawPiece(board, chess::Color::WHITE, chess::PieceType::KNIGHT);
-	drawPiece(board, chess::Color::WHITE, chess::PieceType::ROOK);
-	drawPiece(board, chess::Color::WHITE, chess::PieceType::KING);
-	drawPiece(board, chess::Color::WHITE, chess::PieceType::QUEEN);
+	drawPiece(board, userColor, chess::PieceType::PAWN, true);
+	drawPiece(board, userColor, chess::PieceType::KNIGHT, true);
+	drawPiece(board, userColor, chess::PieceType::BISHOP, true);
+	drawPiece(board, userColor, chess::PieceType::ROOK, true);
+	drawPiece(board, userColor, chess::PieceType::QUEEN, true);
+	drawPiece(board, userColor, chess::PieceType::KING, true);
 
-
-	drawPiece(board, chess::Color::BLACK, chess::PieceType::PAWN);
-	drawPiece(board, chess::Color::BLACK, chess::PieceType::BISHOP);
-	drawPiece(board, chess::Color::BLACK, chess::PieceType::KNIGHT);
-	drawPiece(board, chess::Color::BLACK, chess::PieceType::ROOK);
-	drawPiece(board, chess::Color::BLACK, chess::PieceType::KING);
-	drawPiece(board, chess::Color::BLACK, chess::PieceType::QUEEN);
+	drawPiece(board, userColor, chess::PieceType::PAWN, false);
+	drawPiece(board, userColor, chess::PieceType::KNIGHT, false);
+	drawPiece(board, userColor, chess::PieceType::BISHOP, false);
+	drawPiece(board, userColor, chess::PieceType::ROOK, false);
+	drawPiece(board, userColor, chess::PieceType::QUEEN, false);
+	drawPiece(board, userColor, chess::PieceType::KING, false);
 }
 
 static std::string twoDigit(int n) {

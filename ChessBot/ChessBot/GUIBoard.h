@@ -9,7 +9,7 @@ class GUIBoard
 public:
 
 	int create();
-	void draw(const chess::Board& board);
+	void draw(const chess::Board& board, chess::Color userColor);
 	bool isOpen();
 	// void makeMove(const std::string& move);
 
@@ -17,8 +17,8 @@ private:
 
 	void drawBackground();
 	void drawTime();
-	void drawPieces(const chess::Board& board);
-	void drawPiece(const chess::Board& board, chess::Color color, const chess::PieceType type);
+	void drawPieces(const chess::Board& board, chess::Color userColor);
+	void drawPiece(const chess::Board& board, chess::Color userColor, const chess::PieceType type, bool us);
 	void drawPlayerTime(float t, float yPos, bool userMove);
 
 	sf::Clock m_clock;
