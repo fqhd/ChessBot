@@ -2,3 +2,4 @@
 ChessBot/x64/Debug/ChessBot.pdb
 ChessBot/x64/Release/ChessBot.pdb
 ChessBot/ChessBot/x64
+*.exe

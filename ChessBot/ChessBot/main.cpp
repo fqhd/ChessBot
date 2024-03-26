@@ -6,7 +6,6 @@
 
 Engine engine;
 GUIBoard guiBoard;
-chess::Color userColor;
 
 static void takeInput() {
     while (guiBoard.isOpen()) {
@@ -19,18 +18,15 @@ static void takeInput() {
 
 int main()
 {
+    bool invert = true;
     std::string answer;
     std::cout << "Which side do you want to play?(w/b): ";
     std::cin >> answer;
-    if (answer == "w" || answer == "W") {
-        userColor = chess::Color::WHITE;
-    }
-    else {
-        userColor = chess::Color::BLACK;
-        engine.makeMove();
+    if (answer == "b" || answer == "B") {
+        invert = false;
     }
 
-    if (guiBoard.create()) {
+    if (guiBoard.create(invert)) {
         std::cout << "An error occured creating the board" << std::endl;
         return -1;
     }
@@ -39,7 +35,7 @@ int main()
 
     while (guiBoard.isOpen())
     {
-        guiBoard.draw(engine.getBoard(), userColor);
+        guiBoard.draw(engine.getBoard());
     }
 
     t.join();

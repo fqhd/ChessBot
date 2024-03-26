@@ -3,7 +3,8 @@
 
 const int TILE_SIZE = 128;
 
-int GUIBoard::create() {
+int GUIBoard::create(bool invert) {
+	m_invert = invert;
 	sf::VideoMode mode;
 	mode.width = TILE_SIZE * 14;
 	mode.height = TILE_SIZE * 8;
@@ -23,7 +24,7 @@ int GUIBoard::create() {
 	return 0;
 }
 
-void GUIBoard::draw(const chess::Board& board, chess::Color userColor) {
+void GUIBoard::draw(const chess::Board& board) {
 	m_window.clear(sf::Color(31, 31, 31));
 	sf::Event e;
 	m_window.pollEvent(e);
@@ -40,7 +41,7 @@ void GUIBoard::draw(const chess::Board& board, chess::Color userColor) {
 
 	drawBackground();
 	drawTime();
-	drawPieces(board, userColor);
+	drawPieces(board);
 
 	m_window.display();
 }
@@ -92,45 +93,15 @@ static int offsetFromPieceType(chess::PieceType type) {
 	return index * chessPieceTextureSize;
 }
 
-static chess::Color oppose(chess::Color c) {
-	if (c == chess::Color::WHITE) {
-		return chess::Color::BLACK;
-	}
-	return chess::Color::WHITE;
-}
+void GUIBoard::drawPiece(const chess::Board& board, chess::Color pieceColor, const chess::PieceType type) {
+	chess::Bitboard bits = board.us(pieceColor) & board.pieces(type);
 
-
-void GUIBoard::drawPiece(const chess::Board& board, chess::Color userColor, const chess::PieceType type, bool us) {
-	chess::Bitboard bits;
-	chess::Color pieceColor;
-
-	// The idea is to draw the pieces like before but only use us when we are playing white and use them when we are playing black
-	// There is no need to query for whether we are rendering ourselves or the enemy, all we need is the users color(to check whether we should use us or them)
-	// and the color of the pieces we are currently drawing(either black or white)
-
-	if (userColor == chess::Color::WHITE) {
-		if (us) {
-			pieceColor = chess::Color::WHITE;
-		}
-		else {
-			pieceColor = chess::Color::BLACK;
-		}
-		bits = board.us(pieceColor) & board.pieces(type);
-	}
-	else {
-		if (us) {
-			pieceColor = chess::Color::BLACK;
-		}
-		else {
-			pieceColor = chess::Color::WHITE;
-		}
-		bits = board.them(pieceColor) & board.pieces(type);
-	}
-	
 	for (int i = 0; i < 64; i++) {
 		int x = i % 8;
 		int y = (int)(i / 8);
-		y = 7 - y;
+		if (m_invert) {
+			y = 7 - y;
+		}
 		if ((bits >> i) & 1) {
 			// Draw piece depending on type and color
 			sf::RectangleShape rect;
@@ -148,21 +119,21 @@ void GUIBoard::drawPiece(const chess::Board& board, chess::Color userColor, cons
 	}
 }
 
-void GUIBoard::drawPieces(const chess::Board& board, chess::Color userColor) {
+void GUIBoard::drawPieces(const chess::Board& board) {
 	// Draw all pawns
-	drawPiece(board, userColor, chess::PieceType::PAWN, true);
-	drawPiece(board, userColor, chess::PieceType::KNIGHT, true);
-	drawPiece(board, userColor, chess::PieceType::BISHOP, true);
-	drawPiece(board, userColor, chess::PieceType::ROOK, true);
-	drawPiece(board, userColor, chess::PieceType::QUEEN, true);
-	drawPiece(board, userColor, chess::PieceType::KING, true);
+	drawPiece(board, chess::Color::WHITE, chess::PieceType::PAWN);
+	drawPiece(board, chess::Color::WHITE, chess::PieceType::KNIGHT);
+	drawPiece(board, chess::Color::WHITE, chess::PieceType::BISHOP);
+	drawPiece(board, chess::Color::WHITE, chess::PieceType::ROOK);
+	drawPiece(board, chess::Color::WHITE, chess::PieceType::QUEEN);
+	drawPiece(board, chess::Color::WHITE, chess::PieceType::KING);
 
-	drawPiece(board, userColor, chess::PieceType::PAWN, false);
-	drawPiece(board, userColor, chess::PieceType::KNIGHT, false);
-	drawPiece(board, userColor, chess::PieceType::BISHOP, false);
-	drawPiece(board, userColor, chess::PieceType::ROOK, false);
-	drawPiece(board, userColor, chess::PieceType::QUEEN, false);
-	drawPiece(board, userColor, chess::PieceType::KING, false);
+	drawPiece(board, chess::Color::BLACK, chess::PieceType::PAWN);
+	drawPiece(board, chess::Color::BLACK, chess::PieceType::KNIGHT);
+	drawPiece(board, chess::Color::BLACK, chess::PieceType::BISHOP);
+	drawPiece(board, chess::Color::BLACK, chess::PieceType::ROOK);
+	drawPiece(board, chess::Color::BLACK, chess::PieceType::QUEEN);
+	drawPiece(board, chess::Color::BLACK, chess::PieceType::KING);
 }
 
 static std::string twoDigit(int n) {
