@@ -20,6 +20,7 @@ int GUIBoard::create(bool invert) {
 		std::cerr << "Failed to load the pieces texture" << std::endl;
 		return -1;
 	}
+	m_clock.restart();
 	m_pieceTexture.setSmooth(true);
 	return 0;
 }
@@ -34,13 +35,16 @@ void GUIBoard::draw(const chess::Board& board) {
 		break;
 	}
 
-	// If its white to move
-	m_whiteTime -= m_clock.getElapsedTime().asSeconds();
+	if (board.sideToMove() == chess::Color::WHITE) {
+		m_whiteTime -= m_clock.getElapsedTime().asSeconds();
+	}
+	else {
+		m_blackTime -= m_clock.getElapsedTime().asSeconds();
+	}
 	m_clock.restart();
-	// Otherwise decrease blacks time
 
 	drawBackground();
-	drawTime();
+	drawTime(board);
 	drawPieces(board);
 
 	m_window.display();
@@ -151,7 +155,7 @@ static std::string timeToString(float t) {
 	return minutesText + ":" + secondsText;
 }
 
-void GUIBoard::drawPlayerTime(float t, float yPos, bool userMove) {
+void GUIBoard::drawPlayerTime(float t, float yPos, sf::Color color) {
 	sf::Text text;
 	text.setFont(m_font);
 	text.setString(timeToString(t));
@@ -159,17 +163,35 @@ void GUIBoard::drawPlayerTime(float t, float yPos, bool userMove) {
 
 	text.setPosition(TILE_SIZE * 11 + TILE_SIZE * 0.2, yPos);
 
-	text.setFillColor(sf::Color::White);
+	text.setFillColor(color);
 	m_window.draw(text);
 }
 
-void GUIBoard::drawTime() {
+void GUIBoard::drawTime(const chess::Board& board) {
 	sf::RectangleShape separation;
 	separation.setFillColor(sf::Color::White);
 	separation.setPosition(TILE_SIZE * 11 + TILE_SIZE * 0.5, TILE_SIZE * 4 - 4);
 	separation.setSize(sf::Vector2f(TILE_SIZE * 2, 8));
 	m_window.draw(separation);
 
-	drawPlayerTime(m_whiteTime, TILE_SIZE * 2.5, true);
-	drawPlayerTime(m_blackTime, TILE_SIZE * 4.15, false);
+	if (board.sideToMove() == chess::Color::WHITE) {
+		if (m_invert) {
+			drawPlayerTime(m_blackTime, TILE_SIZE * 2.5, sf::Color(180, 180, 180));
+			drawPlayerTime(m_whiteTime, TILE_SIZE * 4.15, sf::Color::White);
+		}
+		else {
+			drawPlayerTime(m_whiteTime, TILE_SIZE * 2.5, sf::Color::White);
+			drawPlayerTime(m_blackTime, TILE_SIZE * 4.15, sf::Color(180, 180, 180));
+		}
+	}
+	else {
+		if (m_invert) {
+			drawPlayerTime(m_blackTime, TILE_SIZE * 2.5, sf::Color::White);
+			drawPlayerTime(m_whiteTime, TILE_SIZE * 4.15, sf::Color(180, 180, 180));
+		}
+		else {
+			drawPlayerTime(m_whiteTime, TILE_SIZE * 2.5, sf::Color(180, 180, 180));
+			drawPlayerTime(m_blackTime, TILE_SIZE * 4.15, sf::Color::White);
+		}
+	}
 }

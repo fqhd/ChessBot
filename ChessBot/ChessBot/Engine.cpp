@@ -10,34 +10,46 @@ void Engine::makeMove() {
 	Movelist moves;
 
 	movegen::legalmoves(moves, m_board);
-
+	uint64_t s = 0;
+	for (uint64_t i = 0; i < 10000000000; i++) {
+		s += i;
+	}
+	std::cout << s << std::endl;
 	m_board.makeMove(moves[rand() % moves.size()]);
 }
 
-void Engine::playMove(const std::string& move) {
-	Movelist moves;
+void Engine::playMove() {
+	bool validMove = false;
+	while (!validMove) {
+		std::cout << "Move: ";
+		std::string move;
+		std::cin >> move;
 
-	movegen::legalmoves(moves, m_board);
+		Movelist moves;
 
-	std::vector<std::string> stringMoves;
+		movegen::legalmoves(moves, m_board);
 
-	for (const auto& m : moves) {
-		stringMoves.push_back(uci::moveToSan(m_board, m));
-	}
+		std::vector<std::string> stringMoves;
 
-	size_t moveIndex = 0;
-	bool canPlay = false;
-	for (size_t i = 0; i < stringMoves.size(); i++) {
-		if (stringMoves[i] == move) {
-			canPlay = true;
-			moveIndex = i;
+		for (const auto& m : moves) {
+			stringMoves.push_back(uci::moveToSan(m_board, m));
 		}
-	}
 
-	if (canPlay) {
-		m_board.makeMove(moves[moveIndex]);
-	}
-	else {
-		std::cout << "Cannot make that move... please try again" << std::endl;
+		size_t moveIndex = 0;
+		bool canPlay = false;
+		for (size_t i = 0; i < stringMoves.size(); i++) {
+			if (stringMoves[i] == move) {
+				canPlay = true;
+				moveIndex = i;
+			}
+		}
+
+		if (canPlay) {
+			m_board.makeMove(moves[moveIndex]);
+			validMove = true;
+		}
+		else {
+			std::cout << "Cannot make that move... please try again." << std::endl;
+		}
 	}
 }

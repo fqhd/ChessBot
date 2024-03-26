@@ -9,10 +9,9 @@ GUIBoard guiBoard;
 
 static void takeInput() {
     while (guiBoard.isOpen()) {
-        std::cout << "Move: ";
-        std::string s;
-        std::cin >> s;
-        engine.playMove(s);
+        
+        engine.playMove();
+        engine.makeMove();
     }
 }
 

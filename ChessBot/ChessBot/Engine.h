@@ -8,7 +8,7 @@ public:
 
 	const chess::Board& getBoard() const;
 	void makeMove();
-	void playMove(const std::string& move);
+	void playMove();
 
 private:
 

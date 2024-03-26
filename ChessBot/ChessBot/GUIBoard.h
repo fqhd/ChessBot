@@ -16,10 +16,10 @@ public:
 private:
 
 	void drawBackground();
-	void drawTime();
+	void drawTime(const chess::Board& board);
 	void drawPieces(const chess::Board& board);
 	void drawPiece(const chess::Board& board, chess::Color color, const chess::PieceType type);
-	void drawPlayerTime(float t, float yPos, bool userMove);
+	void drawPlayerTime(float t, float yPos, sf::Color color);
 
 	sf::Clock m_clock;
 	sf::Font m_font;
