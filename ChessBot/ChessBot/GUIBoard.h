@@ -10,7 +10,7 @@ public:
 
 	int create(bool invert);
 	void draw(const chess::Board& board);
-	bool isOpen();
+	bool isOpen() const;
 	// void makeMove(const std::string& move);
 
 private:
@@ -28,6 +28,7 @@ private:
 	sf::RenderWindow m_window;
 	sf::Texture m_pieceTexture;
 	bool m_invert;
+	bool m_isOpen;
 
 };
 

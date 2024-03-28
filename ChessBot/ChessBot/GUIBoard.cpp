@@ -14,15 +14,14 @@ int GUIBoard::create(bool invert) {
 	m_whiteTime = 300.0f;
 	m_blackTime = 300.0f;
 	if (!m_font.loadFromFile("Roboto-Regular.ttf")) {
-		std::cerr << "Failed to load roboto font" << std::endl;
 		return -1;
 	}
 	if (!m_pieceTexture.loadFromFile("pieces.png")) {
-		std::cerr << "Failed to load the pieces texture" << std::endl;
 		return -1;
 	}
 	m_clock.restart();
 	m_pieceTexture.setSmooth(true);
+	m_isOpen = true;
 	return 0;
 }
 
@@ -32,6 +31,7 @@ void GUIBoard::draw(const chess::Board& board) {
 	m_window.pollEvent(e);
 	switch (e.type) {
 	case sf::Event::Closed:
+		m_isOpen = false;
 		m_window.close();
 		break;
 	}
@@ -51,8 +51,8 @@ void GUIBoard::draw(const chess::Board& board) {
 	m_window.display();
 }
 
-bool GUIBoard::isOpen() {
-	return m_window.isOpen();
+bool GUIBoard::isOpen() const {
+	return m_isOpen;
 }
 
 void GUIBoard::drawBackground() {

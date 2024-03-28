@@ -1,9 +1,10 @@
 #include "Engine.h"
 #include <algorithm>
+#include <thread>
 
 using namespace chess;
 
-const int SEARCH_DEPTH = 5;
+const int SEARCH_DEPTH = 7;
 const int PAWN_VALUE = 1;
 const int KNIGHT_VALUE = 3;
 const int BISHOP_VALUE = 3;
@@ -11,7 +12,7 @@ const int ROOK_VALUE = 5;
 const int QUEEN_VALUE = 9;
 
 Engine::Engine() {
-	m_board.setFen("5r2/ppp1qppk/2n4p/2brpb2/4P1nN/1P1PB1PB/P1PQ1P1P/2KR1R2 w - - 0 15");
+	// m_board.setFen("5r2/ppp1qppk/2n4p/2brpb2/4P1nN/1P1PB1PB/P1PQ1P1P/2KR1R2 w - - 0 15");
 }
 
 const chess::Board& Engine::getBoard() const {
@@ -162,7 +163,6 @@ void Engine::makeMove() {
 	int bestMoveEval = -INT_MAX;
 	int bestMoveIndex = 0;
 	for (int i = 0; i < moves.size(); i++) {
-		std::cout << moves[i].score() << std::endl;
 		board.makeMove(moves[i]);
 		int moveEval = -search(board, SEARCH_DEPTH, -INT_MAX, INT_MAX);
 		if (moveEval > bestMoveEval) {
