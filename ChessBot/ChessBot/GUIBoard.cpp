@@ -6,8 +6,9 @@ const int TILE_SIZE = 128;
 int GUIBoard::create(bool invert) {
 	m_invert = invert;
 	sf::VideoMode mode;
-	mode.width = TILE_SIZE * 14;
+	mode.width = TILE_SIZE * 11;
 	mode.height = TILE_SIZE * 8;
+	
 	m_window.create(mode, "ChessBot", sf::Style::Default);
 	m_window.setVerticalSyncEnabled(true);
 	m_whiteTime = 300.0f;
@@ -56,10 +57,9 @@ bool GUIBoard::isOpen() {
 
 void GUIBoard::drawBackground() {
 	sf::RectangleShape square;
-	int offset = 3 * TILE_SIZE;
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
-			square.setPosition(offset + j * TILE_SIZE, i * TILE_SIZE);
+			square.setPosition(j * TILE_SIZE, i * TILE_SIZE);
 			square.setSize(sf::Vector2f(TILE_SIZE, TILE_SIZE));
 			// Change this based on whether player is playing black or white
 			if ((i + j) % 2) {
@@ -110,7 +110,7 @@ void GUIBoard::drawPiece(const chess::Board& board, chess::Color pieceColor, con
 			// Draw piece depending on type and color
 			sf::RectangleShape rect;
 			rect.setTexture(&m_pieceTexture);
-			rect.setPosition(sf::Vector2f(x * TILE_SIZE + TILE_SIZE * 3, y * TILE_SIZE));
+			rect.setPosition(sf::Vector2f(x * TILE_SIZE, y * TILE_SIZE));
 			int tx_offset = offsetFromPieceType(type);
 			int ty_offset = 0;
 			if (pieceColor == chess::Color::BLACK) {
@@ -161,7 +161,7 @@ void GUIBoard::drawPlayerTime(float t, float yPos, sf::Color color) {
 	text.setString(timeToString(t));
 	text.setCharacterSize(192 * TILE_SIZE / 180);
 
-	text.setPosition(TILE_SIZE * 11 + TILE_SIZE * 0.2, yPos);
+	text.setPosition(TILE_SIZE * 8 + TILE_SIZE * 0.2, yPos);
 
 	text.setFillColor(color);
 	m_window.draw(text);
@@ -170,7 +170,7 @@ void GUIBoard::drawPlayerTime(float t, float yPos, sf::Color color) {
 void GUIBoard::drawTime(const chess::Board& board) {
 	sf::RectangleShape separation;
 	separation.setFillColor(sf::Color::White);
-	separation.setPosition(TILE_SIZE * 11 + TILE_SIZE * 0.5, TILE_SIZE * 4 - 4);
+	separation.setPosition(TILE_SIZE * 8 + TILE_SIZE * 0.5, TILE_SIZE * 4 - 4);
 	separation.setSize(sf::Vector2f(TILE_SIZE * 2, 8));
 	m_window.draw(separation);
 

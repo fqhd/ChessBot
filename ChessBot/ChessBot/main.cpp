@@ -9,7 +9,6 @@ GUIBoard guiBoard;
 
 static void takeInput() {
     while (guiBoard.isOpen()) {
-        
         engine.playMove();
         engine.makeMove();
     }
