@@ -10,6 +10,7 @@ GUIBoard guiBoard;
 static void takeInput() {
     while (guiBoard.isOpen()) {
         engine.playMove();
+        std::cout << "move has been played" << std::endl;
         engine.makeMove();
     }
 }
@@ -34,6 +35,7 @@ int main()
     while (guiBoard.isOpen())
     {
         guiBoard.draw(engine.getBoard());
+        std::cout << "drawing" << std::endl;
     }
 
     t.join();

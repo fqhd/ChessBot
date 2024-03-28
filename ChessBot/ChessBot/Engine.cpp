@@ -149,6 +149,11 @@ static int search(Board board, int depth, int alpha, int beta) {
 	return alpha;
 }
 
+static void worker(const Board& board, int* result) {
+	int evaluation = -search(board, SEARCH_DEPTH, -INT_MAX, INT_MAX);
+	*result = evaluation;
+}
+
 void Engine::makeMove() {
 	numEvaluations = 0;
 	Board board = m_board;
@@ -160,16 +165,26 @@ void Engine::makeMove() {
 	}
 	std::sort(moves.begin(), moves.end(), compareMoves);
 
-	int bestMoveEval = -INT_MAX;
-	int bestMoveIndex = 0;
+	std::vector<std::thread> threads;
+	std::vector<int> evaluations(moves.size());
+
 	for (int i = 0; i < moves.size(); i++) {
 		board.makeMove(moves[i]);
-		int moveEval = -search(board, SEARCH_DEPTH, -INT_MAX, INT_MAX);
-		if (moveEval > bestMoveEval) {
-			bestMoveEval = moveEval;
+		threads.push_back(std::thread(worker, board, &evaluations[i]));
+		board.unmakeMove(moves[i]);
+	}
+
+	for (int i = 0; i < threads.size(); i++) {
+		threads[i].join();
+	}
+
+	int bestMoveEval = -INT_MAX;
+	int bestMoveIndex = 0;
+	for (int i = 0; i < evaluations.size(); i++) {
+		if (evaluations[i] > bestMoveEval) {
+			bestMoveEval = evaluations[i];
 			bestMoveIndex = i;
 		}
-		board.unmakeMove(moves[i]);
 	}
 
 	m_board.makeMove(moves[bestMoveIndex]);
