@@ -9,9 +9,14 @@ class GUIBoard
 public:
 
 	int create(bool invert);
+	void update();
 	void draw(const chess::Board& board);
 	bool isOpen() const;
-	// void makeMove(const std::string& move);
+	bool sentCommand() const;
+	void setSentCommand(bool sc);
+	void commandFailed();
+	void commandExecuted();
+	const std::string& getCommand() const;
 
 private:
 
@@ -20,6 +25,7 @@ private:
 	void drawPieces(const chess::Board& board);
 	void drawPiece(const chess::Board& board, chess::Color color, const chess::PieceType type);
 	void drawPlayerTime(float t, float yPos, sf::Color color);
+	void drawCommand();
 
 	sf::Clock m_clock;
 	sf::Font m_font;
@@ -29,6 +35,9 @@ private:
 	sf::Texture m_pieceTexture;
 	bool m_invert;
 	bool m_isOpen;
+	bool m_sentCommand;
+	sf::Color m_commandColor;
+	std::string m_command;
+	bool m_lastCommandFailed;
 
 };
-

@@ -7,13 +7,30 @@
 Engine engine;
 GUIBoard guiBoard;
 
+static int executeCommand(const std::string& command) {
+    if (command == "B") {
+        // in progress, supposed to be move takeback
+        return -1;
+    }
+
+    return engine.playMove(command);
+}
+
 static void takeInput() {
     while (guiBoard.isOpen()) {
-        engine.playMove();
-        std::chrono::duration<float> dur(0.1);
+        if (guiBoard.sentCommand()) {
+            if (executeCommand(guiBoard.getCommand())) {
+                guiBoard.commandFailed();
+            }
+            else {
+                guiBoard.commandExecuted();
+                std::chrono::duration<float> dur(0.1);
+                std::this_thread::sleep_for(dur);
+                engine.makeMove();
+            }
+        }
+        std::chrono::duration<float> dur(0.01);
         std::this_thread::sleep_for(dur);
-        std::cout << "move has been played" << std::endl;
-        engine.makeMove();
     }
 }
 
@@ -36,6 +53,7 @@ int main()
 
     while (guiBoard.isOpen())
     {
+        guiBoard.update();
         guiBoard.draw(engine.getBoard());
     }
 

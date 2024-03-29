@@ -22,20 +22,69 @@ int GUIBoard::create(bool invert) {
 	m_clock.restart();
 	m_pieceTexture.setSmooth(true);
 	m_isOpen = true;
+	m_lastCommandFailed = false;
+	m_commandColor = sf::Color(0xFEE258FF);
 	return 0;
 }
 
-void GUIBoard::draw(const chess::Board& board) {
-	m_window.clear(sf::Color(31, 31, 31));
+void GUIBoard::setSentCommand(bool sc) {
+	m_sentCommand = sc;
+}
+
+bool GUIBoard::sentCommand() const {
+	return m_sentCommand;
+}
+
+void GUIBoard::commandFailed() {
+	m_commandColor = sf::Color::Red;
+	m_command = "Inv";
+	m_lastCommandFailed = true;
+	m_sentCommand = false;
+}
+
+const std::string& GUIBoard::getCommand() const {
+	return m_command;
+}
+
+void GUIBoard::commandExecuted() {
+	m_sentCommand = false;
+	m_command.clear();
+}
+
+void GUIBoard::update() {
 	sf::Event e;
 	m_window.pollEvent(e);
+
 	switch (e.type) {
 	case sf::Event::Closed:
 		m_isOpen = false;
 		m_window.close();
 		break;
+	case sf::Event::TextEntered:
+		if (e.text.unicode == 8) { // Backspace
+			if (m_command.size()) {
+				m_command.erase(m_command.size() - 1, 1);
+			}
+		}
+		else if (e.text.unicode == 13) { // Enter
+			m_sentCommand = true;
+		}
+		else {
+			if (m_lastCommandFailed) {
+				m_lastCommandFailed = false;
+				m_command.clear();
+				m_commandColor = sf::Color(0xFEE258FF);
+			}
+			m_command += e.text.unicode;
+		}
+		break;
 	}
 
+}
+
+void GUIBoard::draw(const chess::Board& board) {
+	m_window.clear(sf::Color(31, 31, 31));
+	
 	if (board.sideToMove() == chess::Color::WHITE) {
 		m_whiteTime -= m_clock.getElapsedTime().asSeconds();
 	}
@@ -45,10 +94,23 @@ void GUIBoard::draw(const chess::Board& board) {
 	m_clock.restart();
 
 	drawBackground();
+	drawCommand();
 	drawTime(board);
 	drawPieces(board);
 
 	m_window.display();
+}
+
+void GUIBoard::drawCommand() {
+	sf::Text text;
+	text.setFont(m_font);
+	text.setString(m_command);
+	text.setCharacterSize(192 * TILE_SIZE / 180);
+	text.setFillColor(m_commandColor);
+
+	text.setPosition(TILE_SIZE * 8 + TILE_SIZE * 0.1, TILE_SIZE * 6.5);
+
+	m_window.draw(text);
 }
 
 bool GUIBoard::isOpen() const {

@@ -4,7 +4,7 @@
 
 using namespace chess;
 
-const int SEARCH_DEPTH = 7;
+const int SEARCH_DEPTH = 3;
 const int PAWN_VALUE = 1;
 const int KNIGHT_VALUE = 3;
 const int BISHOP_VALUE = 3;
@@ -194,38 +194,31 @@ void Engine::makeMove() {
 #endif
 }
 
-void Engine::playMove() {
-	bool validMove = false;
-	while (!validMove) {
-		std::cout << "Move: ";
-		std::string move;
-		std::cin >> move;
+int Engine::playMove(const std::string& move) {
+	Movelist moves;
 
-		Movelist moves;
+	movegen::legalmoves(moves, m_board);
 
-		movegen::legalmoves(moves, m_board);
+	std::vector<std::string> stringMoves;
 
-		std::vector<std::string> stringMoves;
+	for (const auto& m : moves) {
+		stringMoves.push_back(uci::moveToSan(m_board, m));
+	}
 
-		for (const auto& m : moves) {
-			stringMoves.push_back(uci::moveToSan(m_board, m));
-		}
-
-		size_t moveIndex = 0;
-		bool canPlay = false;
-		for (size_t i = 0; i < stringMoves.size(); i++) {
-			if (stringMoves[i] == move) {
-				canPlay = true;
-				moveIndex = i;
-			}
-		}
-
-		if (canPlay) {
-			m_board.makeMove(moves[moveIndex]);
-			validMove = true;
-		}
-		else {
-			std::cout << "Cannot make that move... please try again." << std::endl;
+	size_t moveIndex = 0;
+	bool canPlay = false;
+	for (size_t i = 0; i < stringMoves.size(); i++) {
+		if (stringMoves[i] == move) {
+			canPlay = true;
+			moveIndex = i;
 		}
 	}
+
+	if (canPlay) {
+		m_board.makeMove(moves[moveIndex]);
+	}
+	else {
+		return -1;
+	}
+	return 0;
 }

@@ -9,7 +9,7 @@ public:
 	Engine();
 	const chess::Board& getBoard() const;
 	void makeMove();
-	void playMove();
+	int playMove(const std::string& move);
 
 private:
 
