@@ -10,6 +10,8 @@ GUIBoard guiBoard;
 static void takeInput() {
     while (guiBoard.isOpen()) {
         engine.playMove();
+        std::chrono::duration<float> dur(0.1);
+        std::this_thread::sleep_for(dur);
         std::cout << "move has been played" << std::endl;
         engine.makeMove();
     }
@@ -35,7 +37,6 @@ int main()
     while (guiBoard.isOpen())
     {
         guiBoard.draw(engine.getBoard());
-        std::cout << "drawing" << std::endl;
     }
 
     t.join();
