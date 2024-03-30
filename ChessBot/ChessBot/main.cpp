@@ -1,11 +1,11 @@
 #include <iostream>
 #include <thread>
 #include <vector>
+#include <string>
 #include "chess.hpp"
 
 using namespace chess;
 
-const int SEARCH_DEPTH = 3;
 const int PAWN_VALUE = 1;
 const int KNIGHT_VALUE = 3;
 const int BISHOP_VALUE = 3;
@@ -142,12 +142,12 @@ static int search(Board board, int depth, int alpha, int beta) {
 	return alpha;
 }
 
-static void worker(const Board& board, int* result) {
-	int evaluation = -search(board, SEARCH_DEPTH, -INT_MAX, INT_MAX);
+static void worker(const Board& board, int searchDepth, int* result) {
+	int evaluation = -search(board, searchDepth, -INT_MAX, INT_MAX);
 	*result = evaluation;
 }
 
-static Move findBestMove(Board board) {
+static Move findBestMove(Board board, int searchDepth) {
 	numEvaluations = 0;
 
 	Movelist moves;
@@ -162,7 +162,7 @@ static Move findBestMove(Board board) {
 
 	for (int i = 0; i < moves.size(); i++) {
 		board.makeMove(moves[i]);
-		threads.push_back(std::thread(worker, board, &evaluations[i]));
+		threads.push_back(std::thread(worker, board, searchDepth, &evaluations[i]));
 		board.unmakeMove(moves[i]);
 	}
 
@@ -190,14 +190,22 @@ static Move findBestMove(Board board) {
 
 int main(int argc, char* argv[])
 {
-	if (argc < 2) {
+	if (argc < 3) {
 		std::cerr << "Not enough keyword arguments to run the command" << std::endl;
 		return -1;
 	}
 
+	std::string fen = argv[1];
+	int searchDepth = std::stoi(argv[2]);
+
+#ifdef _DEBUG
+	std::cout << "Fen: " << fen << std::endl;
+	std::cout << "Depth: " << searchDepth << std::endl;
+#endif
+
 	Board board(argv[1]);
 
-	Move move = findBestMove(board);
+	Move move = findBestMove(board, searchDepth);
 
 	std::cout << uci::moveToSan(board, move) << std::endl;
 
