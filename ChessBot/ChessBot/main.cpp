@@ -2,6 +2,7 @@
 #include <thread>
 #include <vector>
 #include <string>
+#include <climits>
 #include "chess.hpp"
 
 using namespace chess;
