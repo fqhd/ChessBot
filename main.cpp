@@ -191,20 +191,20 @@ static Move findBestMove(Board board, int searchDepth) {
 
 int main(int argc, char* argv[])
 {
-	if (argc < 3) {
+	/*if (argc < 3) {
 		std::cerr << "Not enough keyword arguments to run the command" << std::endl;
 		return -1;
-	}
+	}*/
 
-	std::string fen = argv[1];
-	int searchDepth = std::stoi(argv[2]);
+	std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+	int searchDepth = 5;
 
 #ifdef _DEBUG
 	std::cout << "Fen: " << fen << std::endl;
 	std::cout << "Depth: " << searchDepth << std::endl;
 #endif
 
-	Board board(argv[1]);
+	Board board(fen);
 
 	Move move = findBestMove(board, searchDepth);
 
