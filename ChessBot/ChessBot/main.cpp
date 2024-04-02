@@ -12,6 +12,7 @@ const int KNIGHT_VALUE = 3;
 const int BISHOP_VALUE = 3;
 const int ROOK_VALUE = 5;
 const int QUEEN_VALUE = 9;
+const int KING_VALUE = 1000;
 
 static int getPieceValue(PieceType type) {
 	if (type == PieceType::PAWN) {
@@ -116,7 +117,7 @@ static int search(Board board, int depth, int alpha, int beta) {
 	movegen::legalmoves(moves, board);
 	if (moves.size() == 0) {
 		if (board.inCheck()) {
-			return -INT_MAX;
+			return -KING_VALUE;
 		}
 		return 0;
 	}
@@ -128,7 +129,7 @@ static int search(Board board, int depth, int alpha, int beta) {
 	avgNumberOfLegalMoves += moves.size();
 	numLegalMovesDivisor++;
 
-	int bestEval = -INT_MAX;
+	int bestEval = -KING_VALUE;
 
 	for (const auto& move : moves) {
 		board.makeMove(move);
@@ -144,7 +145,7 @@ static int search(Board board, int depth, int alpha, int beta) {
 }
 
 static void worker(const Board& board, int searchDepth, int* result) {
-	int evaluation = -search(board, searchDepth, -INT_MAX, INT_MAX);
+	int evaluation = -search(board, searchDepth, -KING_VALUE, KING_VALUE);
 	*result = evaluation;
 }
 
@@ -171,7 +172,7 @@ static Move findBestMove(Board board, int searchDepth) {
 		threads[i].join();
 	}
 
-	int bestMoveEval = -INT_MAX;
+	int bestMoveEval = -KING_VALUE;
 	int bestMoveIndex = 0;
 	for (int i = 0; i < evaluations.size(); i++) {
 		if (evaluations[i] > bestMoveEval) {
@@ -187,7 +188,6 @@ static Move findBestMove(Board board, int searchDepth) {
 
 	return moves[bestMoveIndex];
 }
-
 
 int main(int argc, char* argv[])
 {
