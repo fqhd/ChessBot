@@ -5,13 +5,6 @@
 #include <iostream>
 #include <algorithm>
 
-const int PAWN_VALUE = 1;
-const int KNIGHT_VALUE = 3;
-const int BISHOP_VALUE = 3;
-const int ROOK_VALUE = 5;
-const int QUEEN_VALUE = 9;
-const int KING_VALUE = 1000;
-
 uint64_t numEvaluations = 0;
 uint64_t avgNumberOfLegalMoves = 0;
 uint64_t numLegalMovesDivisor = 0;
@@ -111,6 +104,24 @@ int calculateMoveScore(const Board& board, Move move) {
 	return moveScoreGuess;
 }
 
+int oldSearch(Board board, int depth) {
+	if (depth == 0) return evaluate(board);
+	Movelist moves;
+	movegen::legalmoves(moves, board);
+	if(moves.size() == 0) {
+		if(board.inCheck()) {
+			return -KING_VALUE;
+		}
+		return 0;
+	}
+	int eval = 0;
+	for(auto& move: moves) {
+		board.makeMove(move);
+		eval = -oldSearch(board, depth-1);
+		board.unmakeMove(move);
+	}
+	return eval;
+}
 
 int search(Board board, int depth, int alpha, int beta) {
 	if (depth == 0) {

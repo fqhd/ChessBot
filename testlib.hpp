@@ -20,7 +20,7 @@ void test(const char* testName, bool(*testFunc)()) {
 }
 
 void printResults() {
-	std::cout << "Results: ";
+	std::cout << "Results: " << std::endl;
 	std::cout << testLibPassed << " passed" << std::endl;
 	std::cout << testLibTotal - testLibPassed << " failed" << std::endl;
 	std::cout << "Overall Score: " << testLibPassed << "/" << testLibTotal << std::endl; 

@@ -3,22 +3,22 @@
 #include "testlib.hpp"
 
 bool getPieceValueTest() {
-	if (getPieceValue(PieceType::PAWN) != 1) {
+	if (getPieceValue(PieceType::PAWN) != PAWN_VALUE) {
 		return true;
 	}
-	if (getPieceValue(PieceType::BISHOP) != 3) {
+	if (getPieceValue(PieceType::BISHOP) != BISHOP_VALUE) {
 		return true;
 	}
-	if (getPieceValue(PieceType::KNIGHT) != 3) {
+	if (getPieceValue(PieceType::KNIGHT) != KNIGHT_VALUE) {
 		return true;
 	}
-	if (getPieceValue(PieceType::ROOK) != 5) {
+	if (getPieceValue(PieceType::ROOK) != ROOK_VALUE) {
 		return true;
 	}
-	if (getPieceValue(PieceType::QUEEN) != 9) {
+	if (getPieceValue(PieceType::QUEEN) != QUEEN_VALUE) {
 		return true;
 	}
-	if (getPieceValue(PieceType::KING) != 1000) {
+	if (getPieceValue(PieceType::KING) != KING_VALUE) {
 		return true;
 	}
 	if (getPieceValue(PieceType::NONE) != 0) {
@@ -115,12 +115,66 @@ bool getPieceTypeTest() {
 	return false;
 }
 
+bool searchTest() {
+	if(oldSearch(Board("4k3/5qp1/2nbPr1P/3p4/4n1P1/1Q2P3/2p5/6KB w - - 0 1"), 3) != search(Board("4k3/5qp1/2nbPr1P/3p4/4n1P1/1Q2P3/2p5/6KB w - - 0 1"), 3, -KING_VALUE, KING_VALUE)) {
+		return true;
+	}
+	if(oldSearch(Board("5B2/2k5/bp1R3n/R1pK1P1p/B1P5/2P4P/8/2r5 w - - 0 1"), 3) != search(Board("5B2/2k5/bp1R3n/R1pK1P1p/B1P5/2P4P/8/2r5 w - - 0 1"), 3, -KING_VALUE, KING_VALUE)) {
+		return true;
+	}
+	if(oldSearch(Board("R3R1B1/p1p4p/r1P3k1/b1K3B1/1N6/p6P/1p6/8 w - - 0 1"), 3) != search(Board("R3R1B1/p1p4p/r1P3k1/b1K3B1/1N6/p6P/1p6/8 w - - 0 1"), 3, -KING_VALUE, KING_VALUE)) {
+		return true;
+	}
+	if(oldSearch(Board("4r3/4pP1K/5P2/2p2p2/pp2p3/p6b/6QB/2k1N3 w - - 0 1"), 3) != search(Board("4r3/4pP1K/5P2/2p2p2/pp2p3/p6b/6QB/2k1N3 w - - 0 1"), 3, -KING_VALUE, KING_VALUE)) {
+		return true;
+	}
+	if(oldSearch(Board("6r1/1p4Qn/1bP2N2/2pN1P2/8/1p1P3k/1B1R4/3K4 w - - 0 1"), 3) != search(Board("6r1/1p4Qn/1bP2N2/2pN1P2/8/1p1P3k/1B1R4/3K4 w - - 0 1"), 3, -KING_VALUE, KING_VALUE)) {
+		return true;
+	}
+
+
+	if(oldSearch(Board("3R2Q1/B6K/8/N1PR3P/4n3/2k5/1b1pP1B1/qr6 w - - 0 1"), 4) != search(Board("3R2Q1/B6K/8/N1PR3P/4n3/2k5/1b1pP1B1/qr6 w - - 0 1"), 4, -KING_VALUE, KING_VALUE)) {
+		return true;
+	}
+	if(oldSearch(Board("2R2n2/5b1Q/rP5P/3k2P1/7q/2Pp4/1KPP4/6n1 w - - 0 1"), 4) != search(Board("2R2n2/5b1Q/rP5P/3k2P1/7q/2Pp4/1KPP4/6n1 w - - 0 1"), 4, -KING_VALUE, KING_VALUE)) {
+		return true;
+	}
+	if(oldSearch(Board("4q2r/8/P6Q/1P1P3p/kN4P1/2b2bp1/2KB4/1B6 w - - 0 1"), 4) != search(Board("4q2r/8/P6Q/1P1P3p/kN4P1/2b2bp1/2KB4/1B6 w - - 0 1"), 4, -KING_VALUE, KING_VALUE)) {
+		return true;
+	}
+	if(oldSearch(Board("2R2R2/6K1/p2pPPp1/4N3/3p3p/1P1p2kb/2p5/8 w - - 0 1"), 4) != search(Board("2R2R2/6K1/p2pPPp1/4N3/3p3p/1P1p2kb/2p5/8 w - - 0 1"), 4, -KING_VALUE, KING_VALUE)) {
+		return true;
+	}
+	if(oldSearch(Board("7N/2Pp2B1/6P1/5pr1/PqP4k/1p5p/1R3K2/Q7 w - - 0 1"), 4) != search(Board("7N/2Pp2B1/6P1/5pr1/PqP4k/1p5p/1R3K2/Q7 w - - 0 1"), 4, -KING_VALUE, KING_VALUE)) {
+		return true;
+	}
+
+
+	if(oldSearch(Board("n2R4/1qrB3P/4K3/k7/8/p3R3/2pP2pp/B4N2 w - - 0 1"), 5) != search(Board("n2R4/1qrB3P/4K3/k7/8/p3R3/2pP2pp/B4N2 w - - 0 1"), 5, -KING_VALUE, KING_VALUE)) {
+		return true;
+	}
+	if(oldSearch(Board("3n1nb1/4Pp2/8/4R3/8/p3pPpP/pp5b/2k4K w - - 0 1"), 5) != search(Board("3n1nb1/4Pp2/8/4R3/8/p3pPpP/pp5b/2k4K w - - 0 1"), 5, -KING_VALUE, KING_VALUE)) {
+		return true;
+	}
+	if(oldSearch(Board("R1b5/6P1/1NN1nK2/r4B1q/1P6/1pk1P1b1/3p4/8 w - - 0 1"), 5) != search(Board("R1b5/6P1/1NN1nK2/r4B1q/1P6/1pk1P1b1/3p4/8 w - - 0 1"), 5, -KING_VALUE, KING_VALUE)) {
+		return true;
+	}
+	if(oldSearch(Board("8/5k1p/1K3P2/1n2R1r1/Q1qNr3/1p6/1p4p1/3b2R1 w - - 0 1"), 5) != search(Board("8/5k1p/1K3P2/1n2R1r1/Q1qNr3/1p6/1p4p1/3b2R1 w - - 0 1"), 5, -KING_VALUE, KING_VALUE)) {
+		return true;
+	}
+	if(oldSearch(Board("2K5/1pBnPP2/1ppp4/4P2p/2p5/k3b3/4r3/7N w - - 0 1"), 5) != search(Board("2K5/1pBnPP2/1ppp4/4P2p/2p5/k3b3/4r3/7N w - - 0 1"), 5, -KING_VALUE, KING_VALUE)) {
+		return true;
+	}
+	return false;
+}
+
 int main() {
 
 	test("Get piece value", getPieceValueTest);
 	test("Count material", countMaterialTest);
 	test("Evaluate position", evaluateTest);
 	test("Get piece type", getPieceTypeTest);
+	test("Search conforms with unoptimized DFS", searchTest);
 	
 	printResults();
 
