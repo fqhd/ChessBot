@@ -32,7 +32,10 @@ int getPieceValue(PieceType type) {
 	else if (type == PieceType::KNIGHT) {
 		return KNIGHT_VALUE;
 	}
-	return 1000;
+	else if (type == PieceType::KING) {
+		return KING_VALUE;
+	}
+	return 0;
 }
 
 int countMaterial(const Board& board, Color side) {
@@ -81,6 +84,9 @@ PieceType getPieceType(const Board& board, Square square) {
 
 	uint64_t queen = (squareBit & board.pieces(PieceType::QUEEN)).getBits();
 	if (queen) return PieceType::QUEEN;
+
+	uint64_t king = (squareBit & board.pieces(PieceType::KING)).getBits();
+	if (king) return PieceType::KING;
 
 	return PieceType::NONE;
 }
