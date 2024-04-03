@@ -10,16 +10,17 @@ int main(int argc, char* argv[])
 	std::string fen = argv[1];
 	int searchDepth = std::stoi(argv[2]);
 
-#ifdef _DEBUG
-	std::cout << "Fen: " << fen << std::endl;
-	std::cout << "Depth: " << searchDepth << std::endl;
-#endif
-
 	Board board(fen);
 
 	Move move = findBestMove(board, searchDepth);
 
 	std::cout << uci::moveToSan(board, move) << std::endl;
+
+#ifdef _DEBUG
+	std::cout << "Fen: " << fen << std::endl;
+	std::cout << "Depth: " << searchDepth << std::endl;
+	std::cout << "Num Positions Evaluated: " << getNumPositionsEvaluated() << std::endl;
+#endif
 
     return 0;
 }

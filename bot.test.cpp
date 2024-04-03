@@ -132,7 +132,6 @@ bool searchTest() {
 		return true;
 	}
 
-
 	if(oldSearch(Board("3R2Q1/B6K/8/N1PR3P/4n3/2k5/1b1pP1B1/qr6 w - - 0 1"), 4) != search(Board("3R2Q1/B6K/8/N1PR3P/4n3/2k5/1b1pP1B1/qr6 w - - 0 1"), 4, -KING_VALUE, KING_VALUE)) {
 		return true;
 	}
@@ -148,7 +147,6 @@ bool searchTest() {
 	if(oldSearch(Board("7N/2Pp2B1/6P1/5pr1/PqP4k/1p5p/1R3K2/Q7 w - - 0 1"), 4) != search(Board("7N/2Pp2B1/6P1/5pr1/PqP4k/1p5p/1R3K2/Q7 w - - 0 1"), 4, -KING_VALUE, KING_VALUE)) {
 		return true;
 	}
-
 
 	if(oldSearch(Board("n2R4/1qrB3P/4K3/k7/8/p3R3/2pP2pp/B4N2 w - - 0 1"), 5) != search(Board("n2R4/1qrB3P/4K3/k7/8/p3R3/2pP2pp/B4N2 w - - 0 1"), 5, -KING_VALUE, KING_VALUE)) {
 		return true;

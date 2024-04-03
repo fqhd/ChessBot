@@ -5,9 +5,11 @@
 #include <iostream>
 #include <algorithm>
 
-uint64_t numEvaluations = 0;
-uint64_t avgNumberOfLegalMoves = 0;
-uint64_t numLegalMovesDivisor = 0;
+int numPositionsEvaluated = 0;
+
+int getNumPositionsEvaluated() {
+	return numPositionsEvaluated;
+}
 
 int getPieceValue(PieceType type) {
 	if (type == PieceType::PAWN) {
@@ -42,7 +44,7 @@ int countMaterial(const Board& board, Color side) {
 }
 
 int evaluate(const Board& board) {
-	numEvaluations++;
+	numPositionsEvaluated++;
 	int whiteEval = countMaterial(board, Color::WHITE);
 	int blackEval = countMaterial(board, Color::BLACK);
 
@@ -84,26 +86,6 @@ PieceType getPieceType(const Board& board, Square square) {
 	return PieceType::NONE;
 }
 
-int calculateMoveScore(const Board& board, Move move) {
-	int moveScoreGuess = 0;
-	PieceType fromType = getPieceType(board, move.from());
-	PieceType toType = getPieceType(board, move.to());
-
-	if (toType != PieceType::NONE) {
-		moveScoreGuess = 10 * getPieceValue(toType) - getPieceValue(fromType);
-	}
-
-	if (move == Move::PROMOTION) {
-		moveScoreGuess += getPieceValue(move.promotionType());
-	}
-
-	if (board.isAttacked(move.to(), ~board.sideToMove())) {
-		moveScoreGuess -= getPieceValue(fromType);
-	}
-
-	return moveScoreGuess;
-}
-
 int oldSearch(Board board, int depth) {
 	if (depth == 0) return evaluate(board);
 	Movelist moves;
@@ -114,13 +96,14 @@ int oldSearch(Board board, int depth) {
 		}
 		return 0;
 	}
-	int eval = 0;
+	int bestEval = -KING_VALUE;
 	for(auto& move: moves) {
 		board.makeMove(move);
-		eval = -oldSearch(board, depth-1);
+		int eval = -oldSearch(board, depth - 1);
+		bestEval = std::max(eval, bestEval);
 		board.unmakeMove(move);
 	}
-	return eval;
+	return bestEval;
 }
 
 int search(Board board, int depth, int alpha, int beta) {
@@ -136,15 +119,6 @@ int search(Board board, int depth, int alpha, int beta) {
 		}
 		return 0;
 	}
-	for (auto& move : moves) {
-		move.setScore(calculateMoveScore(board, move));
-	}
-	std::sort(moves.begin(), moves.end(), compareMoves);
-
-	avgNumberOfLegalMoves += moves.size();
-	numLegalMovesDivisor++;
-
-	int bestEval = -KING_VALUE;
 
 	for (const auto& move : moves) {
 		board.makeMove(move);
@@ -153,53 +127,27 @@ int search(Board board, int depth, int alpha, int beta) {
 		if (eval >= beta) {
 			return beta;
 		}
-		if (eval > alpha) alpha = eval;
+		alpha = std::max(alpha, eval);
 	}
 
 	return alpha;
 }
 
-void worker(const Board& board, int searchDepth, int* result) {
-	int evaluation = -search(board, searchDepth, -KING_VALUE, KING_VALUE);
-	*result = evaluation;
-}
-
 Move findBestMove(Board board, int searchDepth) {
-	numEvaluations = 0;
-
 	Movelist moves;
 	movegen::legalmoves(moves, board);
-	for (auto& move : moves) {
-		move.setScore(calculateMoveScore(board, move));
-	}
-	std::sort(moves.begin(), moves.end(), compareMoves);
-
-	std::vector<std::thread> threads;
-	std::vector<int> evaluations(moves.size());
-
-	for (int i = 0; i < moves.size(); i++) {
-		board.makeMove(moves[i]);
-		threads.push_back(std::thread(worker, board, searchDepth, &evaluations[i]));
-		board.unmakeMove(moves[i]);
-	}
-
-	for (int i = 0; i < threads.size(); i++) {
-		threads[i].join();
-	}
 
 	int bestMoveEval = -KING_VALUE;
 	int bestMoveIndex = 0;
-	for (int i = 0; i < evaluations.size(); i++) {
-		if (evaluations[i] > bestMoveEval) {
-			bestMoveEval = evaluations[i];
+	for (int i = 0; i < moves.size(); i++) {
+		board.makeMove(moves[i]);
+		int evaluation = -search(board, searchDepth, -KING_VALUE, KING_VALUE);
+		board.unmakeMove(moves[i]);
+		if(evaluation > bestMoveEval) {
+			bestMoveEval = evaluation;
 			bestMoveIndex = i;
 		}
 	}
-
-#ifdef _DEBUG
-	std::cout << "Num Positions Searched: " << numEvaluations << std::endl;
-	std::cout << "Num Legal Moves Avg: " << avgNumberOfLegalMoves / numLegalMovesDivisor << std::endl;
-#endif
 
 	return moves[bestMoveIndex];
 }
