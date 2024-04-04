@@ -5,10 +5,6 @@
 #include <iostream>
 #include <algorithm>
 
-uint64_t numEvaluations = 0;
-uint64_t avgNumberOfLegalMoves = 0;
-uint64_t numLegalMovesDivisor = 0;
-
 int getPieceValue(PieceType type) {
 	if (type == PieceType::PAWN) {
 		return PAWN_VALUE;
@@ -42,7 +38,6 @@ int countMaterial(const Board& board, Color side) {
 }
 
 int evaluate(const Board& board) {
-	numEvaluations++;
 	int whiteEval = countMaterial(board, Color::WHITE);
 	int blackEval = countMaterial(board, Color::BLACK);
 
@@ -104,8 +99,37 @@ int calculateMoveScore(const Board& board, Move move) {
 	return moveScoreGuess;
 }
 
+int searchAllCaptures(Board board, int alpha, int beta) {
+	int evaluation = evaluate(board);
+	if(evaluation >= beta) {
+		return beta;
+	}
+	alpha = std::max(alpha, evaluation);
+
+	Movelist moves;
+	movegen::legalmoves(moves, board);
+	for (auto& move : moves) {
+		move.setScore(calculateMoveScore(board, move));
+	}
+	std::sort(moves.begin(), moves.end(), compareMoves);
+
+	for (const auto& move : moves) {
+		if(board.isCapture(move)){
+			board.makeMove(move);
+			evaluation = -searchAllCaptures(board, -beta, -alpha);
+			board.unmakeMove(move);
+			if (evaluation >= beta) {
+				return beta;
+			}
+			alpha = std::max(alpha, evaluation);
+		}
+	}
+
+	return alpha;
+}
+
 int oldSearch(Board board, int depth) {
-	if (depth == 0) return evaluate(board);
+	if (depth == 0) return searchAllCaptures(board, -KING_VALUE, KING_VALUE);
 	Movelist moves;
 	movegen::legalmoves(moves, board);
 	if(moves.size() == 0) {
@@ -126,7 +150,7 @@ int oldSearch(Board board, int depth) {
 
 int search(Board board, int depth, int alpha, int beta) {
 	if (depth == 0) {
-		return evaluate(board);
+		return searchAllCaptures(board, alpha, beta);
 	}
 
 	Movelist moves;
@@ -141,9 +165,6 @@ int search(Board board, int depth, int alpha, int beta) {
 		move.setScore(calculateMoveScore(board, move));
 	}
 	std::sort(moves.begin(), moves.end(), compareMoves);
-
-	avgNumberOfLegalMoves += moves.size();
-	numLegalMovesDivisor++;
 
 	for (const auto& move : moves) {
 		board.makeMove(move);
@@ -164,8 +185,6 @@ void worker(const Board& board, int searchDepth, int* result) {
 }
 
 Move findBestMove(Board board, int searchDepth) {
-	numEvaluations = 0;
-
 	Movelist moves;
 	movegen::legalmoves(moves, board);
 	for (auto& move : moves) {
@@ -194,11 +213,6 @@ Move findBestMove(Board board, int searchDepth) {
 			bestMoveIndex = i;
 		}
 	}
-
-#ifdef _DEBUG
-	std::cout << "Num Positions Searched: " << numEvaluations << std::endl;
-	std::cout << "Num Legal Moves Avg: " << avgNumberOfLegalMoves / numLegalMovesDivisor << std::endl;
-#endif
 
 	return moves[bestMoveIndex];
 }
