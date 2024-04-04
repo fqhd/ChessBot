@@ -58,7 +58,7 @@ int evaluate(const Board& board) {
 	if(board.sideToMove() == Color::BLACK) evaluation = -evaluation;
 
 	float endgameWeight = evaluation / 14.0f;
-	evaluation += forceKingToCornerEndgameEval(board.kingSq(board.sideToMove()), board.kingSq(~board.sideToMove()), endgameWeight);
+	evaluation -= forceKingToCornerEndgameEval(board.kingSq(board.sideToMove()), board.kingSq(~board.sideToMove()), endgameWeight);
 
 	return evaluation;
 }
