@@ -37,18 +37,30 @@ int countMaterial(const Board& board, Color side) {
 	return pawns + knights + bishops + rooks + queens;
 }
 
+int forceKingToCornerEndgameEval(Square friendlyKing, Square opponentKing, float endgameWeight) {
+	int evaluation = 0;
+
+	int opponentKingDstFromCenter = Square::distance(opponentKing, Square(File::FILE_D, Rank::RANK_4));
+	evaluation += opponentKingDstFromCenter;
+
+	int dstBetweenKings = Square::distance(friendlyKing, opponentKing);
+	evaluation += 14 - dstBetweenKings;
+
+	return evaluation * 10 * endgameWeight;
+}
+
 int evaluate(const Board& board) {
 	int whiteEval = countMaterial(board, Color::WHITE);
 	int blackEval = countMaterial(board, Color::BLACK);
 
 	int evaluation = whiteEval - blackEval;
 
-	if (board.sideToMove() == Color::WHITE) {
-		return evaluation;
-	}
-	else {
-		return -evaluation;
-	}
+	if(board.sideToMove() == Color::BLACK) evaluation = -evaluation;
+
+	float endgameWeight = evaluation / 14.0f;
+	evaluation += forceKingToCornerEndgameEval(board.kingSq(board.sideToMove()), board.kingSq(~board.sideToMove()), endgameWeight);
+
+	return evaluation;
 }
 
 bool compareMoves(Move a, Move b) {
