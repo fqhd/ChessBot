@@ -1,34 +1,50 @@
 #include "bot.hpp"
 #include "testlib.hpp"
 
-// bool getPieceValueTest() {
-// 	if (getPieceValue(PieceType::PAWN) != PAWN_VALUE) {
-// 		return true;
-// 	}
-// 	if (getPieceValue(PieceType::BISHOP) != BISHOP_VALUE) {
-// 		return true;
-// 	}
-// 	if (getPieceValue(PieceType::KNIGHT) != KNIGHT_VALUE) {
-// 		return true;
-// 	}
-// 	if (getPieceValue(PieceType::ROOK) != ROOK_VALUE) {
-// 		return true;
-// 	}
-// 	if (getPieceValue(PieceType::QUEEN) != QUEEN_VALUE) {
-// 		return true;
-// 	}
-// 	if (getPieceValue(PieceType::KING) != INT_MAX) {
-// 		return true;
-// 	}
-// 	if (getPieceValue(PieceType::NONE) != 0) {
-// 		return true;
-// 	}
+bool getPieceValueTest() {
+	if (getPieceValue('p') != PAWN_VALUE) {
+		return true;
+	}
+	if (getPieceValue('b') != BISHOP_VALUE) {
+		return true;
+	}
+	if (getPieceValue('n') != KNIGHT_VALUE) {
+		return true;
+	}
+	if (getPieceValue('r') != ROOK_VALUE) {
+		return true;
+	}
+	if (getPieceValue('q') != QUEEN_VALUE) {
+		return true;
+	}
+	if (getPieceValue('k') != KING_VALUE) {
+		return true;
+	}
+	if (getPieceValue('P') != PAWN_VALUE) {
+		return true;
+	}
+	if (getPieceValue('B') != BISHOP_VALUE) {
+		return true;
+	}
+	if (getPieceValue('N') != KNIGHT_VALUE) {
+		return true;
+	}
+	if (getPieceValue('R') != ROOK_VALUE) {
+		return true;
+	}
+	if (getPieceValue('Q') != QUEEN_VALUE) {
+		return true;
+	}
+	if (getPieceValue('K') != KING_VALUE) {
+		return true;
+	}
 
-// 	return false;
-// }
+	return false;
+}
 
 bool countMaterialTest() {
 	thc::ChessRules cr;
+
 	cr.Forsyth("rnb1k2r/pppqb1pp/3p1n2/8/8/4Q1P1/PPPP1P1P/RNB1KB1R b KQkq - 0 1");
 
 	if(countMaterial(&cr, true) != 35) {
@@ -89,46 +105,6 @@ bool evaluateTest() {
 	}
 	return false;
 }
-
-// bool getPieceTypeTest() {
-// 	if(getPieceType(Board("K3k3/6rP/2p1P2B/1BN1N3/4PP1P/6R1/5b2/6n1 w - - 0 1"), Square(Rank::RANK_5, File::FILE_B)) != PieceType::BISHOP) {
-// 		return true;
-// 	}
-// 	if(getPieceType(Board("K3k3/6rP/2p1P2B/1BN1N3/4PP1P/6R1/5b2/6n1 w - - 0 1"), Square(Rank::RANK_6, File::FILE_B)) != PieceType::NONE) {
-// 		return true;
-// 	}
-// 	if(getPieceType(Board("K3k3/6rP/2p1P2B/1BN1N3/4PP1P/6R1/5b2/6n1 w - - 0 1"), Square(Rank::RANK_6, File::FILE_C)) != PieceType::PAWN) {
-// 		return true;
-// 	}
-// 	if(getPieceType(Board("K3k3/6rP/2p1P2B/1BN1N3/4PP1P/6R1/5b2/6n1 w - - 0 1"), Square(Rank::RANK_6, File::FILE_D)) != PieceType::NONE) {
-// 		return true;
-// 	}
-// 	if(getPieceType(Board("K3k3/6rP/2p1P2B/1BN1N3/4PP1P/6R1/5b2/6n1 b - - 0 1"), Square(Rank::RANK_6, File::FILE_D)) != PieceType::NONE) {
-// 		return true;
-// 	}
-// 	if(getPieceType(Board("K3k3/6rP/2p1P2B/1BN1N3/4PP1P/6R1/5b2/6n1 w - - 0 1"), Square(Rank::RANK_8, File::FILE_A)) != PieceType::KING) {
-// 		return true;
-// 	}
-// 	if(getPieceType(Board("K3k3/6rP/2p1P2B/1BN1N3/4PP1P/6R1/5b2/6n1 w - - 0 1"), Square(Rank::RANK_8, File::FILE_E)) != PieceType::KING) {
-// 		return true;
-// 	}
-// 	if(getPieceType(Board("K3k3/6rP/2p1P2B/1BN1N3/4PP1P/6R1/5b2/6n1 w - - 0 1"), Square(Rank::RANK_7, File::FILE_G)) != PieceType::ROOK) {
-// 		return true;
-// 	}
-// 	if(getPieceType(Board("K3k3/6rP/2p1P2B/1BN1N3/4PP1P/6R1/5b2/6n1 w - - 0 1"), Square(Rank::RANK_1, File::FILE_G)) != PieceType::KNIGHT) {
-// 		return true;
-// 	}
-// 	if(getPieceType(Board("K3k3/6rP/2p1P2B/1BN1N3/4PP1P/6R1/5b2/6n1 w - - 0 1"), Square(Rank::RANK_1, File::FILE_H)) != PieceType::NONE) {
-// 		return true;
-// 	}
-// 	if(getPieceType(Board("4k2q/p5p1/1p1pK3/3R2p1/2n4b/QP1b3P/P1RPP3/8 w - - 0 1"), Square(Rank::RANK_3, File::FILE_A)) != PieceType::QUEEN) {
-// 		return true;
-// 	}
-// 	if(getPieceType(Board("4k2q/p5p1/1p1pK3/3R2p1/2n4b/QP1b3P/P1RPP3/8 w - - 0 1"), Square(Rank::RANK_8, File::FILE_H)) != PieceType::QUEEN) {
-// 		return true;
-// 	}
-// 	return false;
-// }
 
 bool searchTest() {
 	thc::ChessRules cr;
@@ -199,6 +175,7 @@ bool searchTest() {
 
 int main() {
 
+	test("Get piece value", getPieceValueTest);
 	test("Count material", countMaterialTest);
 	test("Evaluate position", evaluateTest);
 	test("Search conforms with unoptimized DFS", searchTest);
