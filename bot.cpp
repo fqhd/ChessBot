@@ -1,182 +1,155 @@
 #include "bot.hpp"
+#include <thread>
+#include <vector>
+#include <string>
+#include <iostream>
 #include <algorithm>
 
-int numPositions = 0;
+uint64_t numEvaluations = 0;
+uint64_t avgNumberOfLegalMoves = 0;
+uint64_t numLegalMovesDivisor = 0;
 
-struct ScoredMove {
-	ScoredMove(const thc::Move& m, int s) {
-		move = m;
-		score = s;
+int getPieceValue(PieceType type) {
+	if (type == PieceType::PAWN) {
+		return PAWN_VALUE;
 	}
-	thc::Move move;
-	int score;
-};
-
-int countMaterial(thc::ChessRules* cr, bool white) {
-	int material = 0;
-	if(white) {
-		// Look for uppercase
-		for(int i = 0; i < 64; i++){
-			if(cr->squares[i] == 'P') {
-				material += PAWN_VALUE;
-			}else if(cr->squares[i] == 'R') {
-				material += ROOK_VALUE;
-			}else if(cr->squares[i] == 'B') {
-				material += BISHOP_VALUE;
-			}else if(cr->squares[i] == 'N') {
-				material += KNIGHT_VALUE;
-			}else if(cr->squares[i] == 'Q') {
-				material += QUEEN_VALUE;
-			}
-		}
-	}else{
-		// Look for lowercase
-		for(int i = 0; i < 64; i++){
-			if(cr->squares[i] == 'p') {
-				material += PAWN_VALUE;
-			}else if(cr->squares[i] == 'r') {
-				material += ROOK_VALUE;
-			}else if(cr->squares[i] == 'b') {
-				material += BISHOP_VALUE;
-			}else if(cr->squares[i] == 'n') {
-				material += KNIGHT_VALUE;
-			}else if(cr->squares[i] == 'q') {
-				material += QUEEN_VALUE;
-			}
-		}
+	else if (type == PieceType::BISHOP) {
+		return BISHOP_VALUE;
 	}
-	return material;
-}
-
-int evaluate(thc::ChessRules* cr) {
-	numPositions++;
-	int whiteMaterial = countMaterial(cr, true);
-	int blackMaterial = countMaterial(cr, false);
-
-	int evaluation = whiteMaterial - blackMaterial;
-
-	if(cr->WhiteToPlay()) return evaluation;
-	return -evaluation;
-}
-
-int oldSearch(thc::ChessRules* cr, int depth) {
-	if(depth == 0) return evaluate(cr);
-	std::vector<thc::Move> moves;
-	cr->GenLegalMoveList(moves);
-	if(moves.size() == 0) {
-		thc::Square s = cr->WhiteToPlay() ? cr->wking_square : cr->bking_square;
-		if(cr->AttackedPiece(s)){
-			return -KING_VALUE;
-		}
-		return 0;
+	else if (type == PieceType::ROOK) {
+		return ROOK_VALUE;
 	}
-
-	int bestEvaluation = -KING_VALUE;
-	for(auto& move : moves) {
-		cr->PushMove(move);
-		int eval = -oldSearch(cr, depth - 1);
-		bestEvaluation = std::max(eval, bestEvaluation);
-		cr->PopMove(move);
+	else if (type == PieceType::QUEEN) {
+		return QUEEN_VALUE;
 	}
-
-	return bestEvaluation;
-}
-
-int getPieceValue(char piece) {
-	switch(piece) {
-		case 'p':
-			return PAWN_VALUE;
-		break;
-		case 'b':
-			return BISHOP_VALUE;
-		break;
-		case 'n':
-			return KNIGHT_VALUE;
-		break;
-		case 'r':
-			return ROOK_VALUE;
-		break;
-		case 'q':
-			return QUEEN_VALUE;
-		break;
-		case 'k':
-			return KING_VALUE;
-		break;
-		case 'P':
-			return PAWN_VALUE;
-		break;
-		case 'B':
-			return BISHOP_VALUE;
-		break;
-		case 'N':
-			return KNIGHT_VALUE;
-		break;
-		case 'R':
-			return ROOK_VALUE;
-		break;
-		case 'Q':
-			return QUEEN_VALUE;
-		break;
-		case 'K':
-			return KING_VALUE;
-		break;
+	else if (type == PieceType::KNIGHT) {
+		return KNIGHT_VALUE;
+	}
+	else if (type == PieceType::KING) {
+		return KING_VALUE;
 	}
 	return 0;
 }
 
-int calculateScore(thc::ChessRules* cr, thc::Move move) {
+int countMaterial(const Board& board, Color side) {
+	Bitboard us = board.us(side);
+	int pawns = (board.pieces(PieceType::PAWN) & us).count() * PAWN_VALUE;
+	int knights = (board.pieces(PieceType::KNIGHT) & us).count() * KNIGHT_VALUE;
+	int bishops = (board.pieces(PieceType::BISHOP) & us).count() * BISHOP_VALUE;
+	int rooks = (board.pieces(PieceType::ROOK) & us).count() * ROOK_VALUE;
+	int queens = (board.pieces(PieceType::QUEEN) & us).count() * QUEEN_VALUE;
+	return pawns + knights + bishops + rooks + queens;
+}
+
+int evaluate(const Board& board) {
+	numEvaluations++;
+	int whiteEval = countMaterial(board, Color::WHITE);
+	int blackEval = countMaterial(board, Color::BLACK);
+
+	int evaluation = whiteEval - blackEval;
+
+	if (board.sideToMove() == Color::WHITE) {
+		return evaluation;
+	}
+	else {
+		return -evaluation;
+	}
+}
+
+bool compareMoves(Move a, Move b) {
+	return a.score() > b.score();
+}
+
+PieceType getPieceType(const Board& board, Square square) {
+	Bitboard squareBit;
+	squareBit = squareBit |= (1ULL << square.index());
+	uint64_t pawn = (squareBit & board.pieces(PieceType::PAWN)).getBits();
+	if (pawn) return PieceType::PAWN;
+
+	uint64_t bishop = (squareBit & board.pieces(PieceType::BISHOP)).getBits();
+	if (bishop) return PieceType::BISHOP;
+
+	uint64_t knight = (squareBit & board.pieces(PieceType::KNIGHT)).getBits();
+	if (knight) return PieceType::KNIGHT;
+
+	uint64_t rook = (squareBit & board.pieces(PieceType::ROOK)).getBits();
+	if (rook) return PieceType::ROOK;
+
+	uint64_t queen = (squareBit & board.pieces(PieceType::QUEEN)).getBits();
+	if (queen) return PieceType::QUEEN;
+
+	uint64_t king = (squareBit & board.pieces(PieceType::KING)).getBits();
+	if (king) return PieceType::KING;
+
+	return PieceType::NONE;
+}
+
+int calculateMoveScore(const Board& board, Move move) {
 	int moveScoreGuess = 0;
+	PieceType fromType = getPieceType(board, move.from());
+	PieceType toType = getPieceType(board, move.to());
 
-	char movePieceType = cr->squares[move.src];
-	char capturePieceType = cr->squares[move.dst];
-
-	if (move.capture != ' ') {
-		moveScoreGuess += 10 * getPieceValue(capturePieceType) - getPieceValue(movePieceType);
+	if (toType != PieceType::NONE) {
+		moveScoreGuess = 10 * getPieceValue(toType) - getPieceValue(fromType);
 	}
 
-	if(move.special == thc::SPECIAL_PROMOTION_BISHOP) {
-		moveScoreGuess += BISHOP_VALUE;
-	}else if(move.special == thc::SPECIAL_PROMOTION_KNIGHT) {
-		moveScoreGuess += KNIGHT_VALUE;
-	}else if(move.special == thc::SPECIAL_PROMOTION_ROOK) {
-		moveScoreGuess += ROOK_VALUE;
-	}else if(move.special == thc::SPECIAL_PROMOTION_QUEEN) {
-		moveScoreGuess += QUEEN_VALUE;
+	if (move == Move::PROMOTION) {
+		moveScoreGuess += getPieceValue(move.promotionType());
 	}
 
-	if(cr->AttackedPiece(move.dst)) {
-		moveScoreGuess -= getPieceValue(movePieceType);
+	if (board.isAttacked(move.to(), ~board.sideToMove())) {
+		moveScoreGuess -= getPieceValue(fromType);
 	}
 
 	return moveScoreGuess;
 }
 
-bool compareMoves(ScoredMove a, ScoredMove b) {
-	return a.score > b.score;
-}
-
-int search(thc::ChessRules* cr, int depth, int alpha, int beta) {
-	if(depth == 0) return evaluate(cr);
-	std::vector<thc::Move> unorderedMoves;
-	cr->GenLegalMoveList(unorderedMoves);
-	if(unorderedMoves.size() == 0) {
-		thc::Square s = cr->WhiteToPlay() ? cr->wking_square : cr->bking_square;
-		if(cr->AttackedPiece(s)){
+int oldSearch(Board board, int depth) {
+	if (depth == 0) return evaluate(board);
+	Movelist moves;
+	movegen::legalmoves(moves, board);
+	if(moves.size() == 0) {
+		if(board.inCheck()) {
 			return -KING_VALUE;
 		}
 		return 0;
 	}
-	std::vector<ScoredMove> moves;
-	for(auto& move : unorderedMoves) {
-		moves.emplace_back(move, calculateScore(cr, move));
+	int bestEval = -KING_VALUE;
+	for(auto& move: moves) {
+		board.makeMove(move);
+		int eval = -oldSearch(board, depth - 1);
+		bestEval = std::max(eval, bestEval);
+		board.unmakeMove(move);
+	}
+	return bestEval;
+}
+
+int search(Board board, int depth, int alpha, int beta) {
+	if (depth == 0) {
+		return evaluate(board);
+	}
+
+	Movelist moves;
+	movegen::legalmoves(moves, board);
+	if (moves.size() == 0) {
+		if (board.inCheck()) {
+			return -KING_VALUE;
+		}
+		return 0;
+	}
+	for (auto& move : moves) {
+		move.setScore(calculateMoveScore(board, move));
 	}
 	std::sort(moves.begin(), moves.end(), compareMoves);
 
-	for(auto& move : moves) {
-		cr->PushMove(move.move);
-		int eval = -search(cr, depth - 1, -beta, -alpha);
-		cr->PopMove(move.move);
-		if(eval >= beta) {
+	avgNumberOfLegalMoves += moves.size();
+	numLegalMovesDivisor++;
+
+	for (const auto& move : moves) {
+		board.makeMove(move);
+		int eval = -search(board, depth - 1, -beta, -alpha);
+		board.unmakeMove(move);
+		if (eval >= beta) {
 			return beta;
 		}
 		alpha = std::max(alpha, eval);
@@ -184,26 +157,48 @@ int search(thc::ChessRules* cr, int depth, int alpha, int beta) {
 
 	return alpha;
 }
- 
-thc::Move findBestMove(thc::ChessRules cr, int depth) {
-	std::vector<thc::Move> unorderedMoves;
-	cr.GenLegalMoveList(unorderedMoves);
-	std::vector<ScoredMove> moves;
-	for(auto& move : unorderedMoves) {
-		moves.emplace_back(move, calculateScore(&cr, move));
+
+void worker(const Board& board, int searchDepth, int* result) {
+	int evaluation = -search(board, searchDepth, -KING_VALUE, KING_VALUE);
+	*result = evaluation;
+}
+
+Move findBestMove(Board board, int searchDepth) {
+	numEvaluations = 0;
+
+	Movelist moves;
+	movegen::legalmoves(moves, board);
+	for (auto& move : moves) {
+		move.setScore(calculateMoveScore(board, move));
 	}
 	std::sort(moves.begin(), moves.end(), compareMoves);
-	int bestMoveIndex = 0;
-	int bestEvaluation = -KING_VALUE;
-	for(unsigned int i = 0; i < moves.size(); i++) {
-		cr.PushMove(moves[i].move);
-		int evaluation = -search(&cr, depth, -KING_VALUE, KING_VALUE);
-		if (evaluation > bestEvaluation) {
-			bestMoveIndex = i;
-			bestEvaluation = evaluation;
-		}
-		cr.PopMove(moves[i].move);
+
+	std::vector<std::thread> threads;
+	std::vector<int> evaluations(moves.size());
+
+	for (int i = 0; i < moves.size(); i++) {
+		board.makeMove(moves[i]);
+		threads.push_back(std::thread(worker, board, searchDepth, &evaluations[i]));
+		board.unmakeMove(moves[i]);
 	}
-	std::cout << "Num Positions Evaluated: " << numPositions << std::endl;
-	return moves[bestMoveIndex].move;
+
+	for (int i = 0; i < threads.size(); i++) {
+		threads[i].join();
+	}
+
+	int bestMoveEval = -KING_VALUE;
+	int bestMoveIndex = 0;
+	for (int i = 0; i < evaluations.size(); i++) {
+		if (evaluations[i] > bestMoveEval) {
+			bestMoveEval = evaluations[i];
+			bestMoveIndex = i;
+		}
+	}
+
+#ifdef _DEBUG
+	std::cout << "Num Positions Searched: " << numEvaluations << std::endl;
+	std::cout << "Num Legal Moves Avg: " << avgNumberOfLegalMoves / numLegalMovesDivisor << std::endl;
+#endif
+
+	return moves[bestMoveIndex];
 }

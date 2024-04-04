@@ -15,13 +15,11 @@ int main(int argc, char* argv[])
 	std::cout << "Depth: " << searchDepth << std::endl;
 #endif
 
-	thc::ChessRules cr;
-	cr.Forsyth(fen.c_str());
+	Board board(fen);
 
-	thc::Move move = findBestMove(cr, searchDepth);
+	Move move = findBestMove(board, searchDepth);
 
-	std::cout << move.NaturalOut(&cr) << std::endl;
-
+	std::cout << uci::moveToSan(board, move) << std::endl;
 
     return 0;
 }
