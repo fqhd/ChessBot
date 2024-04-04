@@ -10,17 +10,18 @@ int main(int argc, char* argv[])
 	std::string fen = argv[1];
 	int searchDepth = std::stoi(argv[2]);
 
-	Board board(fen);
-
-	Move move = findBestMove(board, searchDepth);
-
-	std::cout << uci::moveToSan(board, move) << std::endl;
-
 #ifdef _DEBUG
 	std::cout << "Fen: " << fen << std::endl;
 	std::cout << "Depth: " << searchDepth << std::endl;
-	std::cout << "Num Positions Evaluated: " << getNumPositionsEvaluated() << std::endl;
 #endif
+
+	thc::ChessRules cr;
+	cr.Forsyth(fen.c_str());
+
+	thc::Move move = findBestMove(cr, searchDepth);
+
+	std::cout << move.NaturalOut(&cr) << std::endl;
+
 
     return 0;
 }

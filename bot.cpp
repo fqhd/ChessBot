@@ -1,130 +1,94 @@
 #include "bot.hpp"
-#include <thread>
-#include <vector>
-#include <string>
-#include <iostream>
-#include <algorithm>
 
-int numPositionsEvaluated = 0;
+int numPositions = 0;
 
-int getNumPositionsEvaluated() {
-	return numPositionsEvaluated;
+int countMaterial(thc::ChessRules* cr, bool white) {
+	int material = 0;
+	if(white) {
+		// Look for uppercase
+		for(int i = 0; i < 64; i++){
+			if(cr->squares[i] == 'P') {
+				material += PAWN_VALUE;
+			}else if(cr->squares[i] == 'R') {
+				material += ROOK_VALUE;
+			}else if(cr->squares[i] == 'B') {
+				material += BISHOP_VALUE;
+			}else if(cr->squares[i] == 'N') {
+				material += KNIGHT_VALUE;
+			}else if(cr->squares[i] == 'Q') {
+				material += QUEEN_VALUE;
+			}
+		}
+	}else{
+		// Look for lowercase
+		for(int i = 0; i < 64; i++){
+			if(cr->squares[i] == 'p') {
+				material += PAWN_VALUE;
+			}else if(cr->squares[i] == 'r') {
+				material += ROOK_VALUE;
+			}else if(cr->squares[i] == 'b') {
+				material += BISHOP_VALUE;
+			}else if(cr->squares[i] == 'n') {
+				material += KNIGHT_VALUE;
+			}else if(cr->squares[i] == 'q') {
+				material += QUEEN_VALUE;
+			}
+		}
+	}
+	return material;
 }
 
-int getPieceValue(PieceType type) {
-	if (type == PieceType::PAWN) {
-		return PAWN_VALUE;
-	}
-	else if (type == PieceType::BISHOP) {
-		return BISHOP_VALUE;
-	}
-	else if (type == PieceType::ROOK) {
-		return ROOK_VALUE;
-	}
-	else if (type == PieceType::QUEEN) {
-		return QUEEN_VALUE;
-	}
-	else if (type == PieceType::KNIGHT) {
-		return KNIGHT_VALUE;
-	}
-	else if (type == PieceType::KING) {
-		return KING_VALUE;
-	}
-	return 0;
+int evaluate(thc::ChessRules* cr) {
+	numPositions++;
+	int whiteMaterial = countMaterial(cr, true);
+	int blackMaterial = countMaterial(cr, false);
+
+	int evaluation = whiteMaterial - blackMaterial;
+
+	if(cr->WhiteToPlay()) return evaluation;
+	return -evaluation;
 }
 
-int countMaterial(const Board& board, Color side) {
-	Bitboard us = board.us(side);
-	int pawns = (board.pieces(PieceType::PAWN) & us).count() * PAWN_VALUE;
-	int knights = (board.pieces(PieceType::KNIGHT) & us).count() * KNIGHT_VALUE;
-	int bishops = (board.pieces(PieceType::BISHOP) & us).count() * BISHOP_VALUE;
-	int rooks = (board.pieces(PieceType::ROOK) & us).count() * ROOK_VALUE;
-	int queens = (board.pieces(PieceType::QUEEN) & us).count() * QUEEN_VALUE;
-	return pawns + knights + bishops + rooks + queens;
-}
-
-int evaluate(const Board& board) {
-	numPositionsEvaluated++;
-	int whiteEval = countMaterial(board, Color::WHITE);
-	int blackEval = countMaterial(board, Color::BLACK);
-
-	int evaluation = whiteEval - blackEval;
-
-	if (board.sideToMove() == Color::WHITE) {
-		return evaluation;
-	}
-	else {
-		return -evaluation;
-	}
-}
-
-bool compareMoves(Move a, Move b) {
-	return a.score() > b.score();
-}
-
-PieceType getPieceType(const Board& board, Square square) {
-	Bitboard squareBit;
-	squareBit = squareBit |= (1ULL << square.index());
-	uint64_t pawn = (squareBit & board.pieces(PieceType::PAWN)).getBits();
-	if (pawn) return PieceType::PAWN;
-
-	uint64_t bishop = (squareBit & board.pieces(PieceType::BISHOP)).getBits();
-	if (bishop) return PieceType::BISHOP;
-
-	uint64_t knight = (squareBit & board.pieces(PieceType::KNIGHT)).getBits();
-	if (knight) return PieceType::KNIGHT;
-
-	uint64_t rook = (squareBit & board.pieces(PieceType::ROOK)).getBits();
-	if (rook) return PieceType::ROOK;
-
-	uint64_t queen = (squareBit & board.pieces(PieceType::QUEEN)).getBits();
-	if (queen) return PieceType::QUEEN;
-
-	uint64_t king = (squareBit & board.pieces(PieceType::KING)).getBits();
-	if (king) return PieceType::KING;
-
-	return PieceType::NONE;
-}
-
-int oldSearch(Board board, int depth) {
-	if (depth == 0) return evaluate(board);
-	Movelist moves;
-	movegen::legalmoves(moves, board);
+int oldSearch(thc::ChessRules* cr, int depth) {
+	if(depth == 0) return evaluate(cr);
+	std::vector<thc::Move> moves;
+	cr->GenLegalMoveList(moves);
 	if(moves.size() == 0) {
-		if(board.inCheck()) {
-			return -KING_VALUE;
+		thc::Square s = cr->WhiteToPlay() ? cr->wking_square : cr->bking_square;
+		if(cr->AttackedPiece(s)){
+			return -INT_MAX;
 		}
 		return 0;
 	}
-	int bestEval = -KING_VALUE;
-	for(auto& move: moves) {
-		board.makeMove(move);
-		int eval = -oldSearch(board, depth - 1);
-		bestEval = std::max(eval, bestEval);
-		board.unmakeMove(move);
+
+	int bestEvaluation = -INT_MAX;
+	for(auto& move : moves) {
+		cr->PushMove(move);
+		int eval = -oldSearch(cr, depth - 1);
+		bestEvaluation = std::max(eval, bestEvaluation);
+		cr->PopMove(move);
 	}
-	return bestEval;
+
+	return bestEvaluation;
 }
 
-int search(Board board, int depth, int alpha, int beta) {
-	if (depth == 0) {
-		return evaluate(board);
-	}
-
-	Movelist moves;
-	movegen::legalmoves(moves, board);
-	if (moves.size() == 0) {
-		if (board.inCheck()) {
-			return -KING_VALUE;
+int search(thc::ChessRules* cr, int depth, int alpha, int beta) {
+	if(depth == 0) return evaluate(cr);
+	std::vector<thc::Move> moves;
+	cr->GenLegalMoveList(moves);
+	if(moves.size() == 0) {
+		thc::Square s = cr->WhiteToPlay() ? cr->wking_square : cr->bking_square;
+		if(cr->AttackedPiece(s)){
+			return -INT_MAX;
 		}
 		return 0;
 	}
 
-	for (const auto& move : moves) {
-		board.makeMove(move);
-		int eval = -search(board, depth - 1, -beta, -alpha);
-		board.unmakeMove(move);
-		if (eval >= beta) {
+	for(auto& move : moves) {
+		cr->PushMove(move);
+		int eval = -search(cr, depth - 1, -beta, -alpha);
+		cr->PopMove(move);
+		if(eval >= beta) {
 			return beta;
 		}
 		alpha = std::max(alpha, eval);
@@ -132,22 +96,21 @@ int search(Board board, int depth, int alpha, int beta) {
 
 	return alpha;
 }
-
-Move findBestMove(Board board, int searchDepth) {
-	Movelist moves;
-	movegen::legalmoves(moves, board);
-
-	int bestMoveEval = -KING_VALUE;
+ 
+thc::Move findBestMove(thc::ChessRules cr, int depth) {
+	std::vector<thc::Move> moves;
+	cr.GenLegalMoveList(moves);
 	int bestMoveIndex = 0;
-	for (int i = 0; i < moves.size(); i++) {
-		board.makeMove(moves[i]);
-		int evaluation = -search(board, searchDepth, -KING_VALUE, KING_VALUE);
-		board.unmakeMove(moves[i]);
-		if(evaluation > bestMoveEval) {
-			bestMoveEval = evaluation;
+	int bestEvaluation = -INT_MAX;
+	for(unsigned int i = 0; i < moves.size(); i++) {
+		cr.PushMove(moves[i]);
+		int evaluation = -search(&cr, depth, -INT_MAX, INT_MAX);
+		if (evaluation > bestEvaluation) {
 			bestMoveIndex = i;
+			bestEvaluation = evaluation;
 		}
+		cr.PopMove(moves[i]);
 	}
-
+	std::cout << "Num Positions Evaluated: " << numPositions << std::endl;
 	return moves[bestMoveIndex];
 }
