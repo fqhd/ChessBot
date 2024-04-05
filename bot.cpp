@@ -5,7 +5,7 @@
 #include <iostream>
 #include <algorithm>
 
-int getPieceValue(PieceType type) {
+int GetPieceValue(PieceType type) {
 	if (type == PieceType::PAWN) {
 		return PAWN_VALUE;
 	}
@@ -22,12 +22,12 @@ int getPieceValue(PieceType type) {
 		return KNIGHT_VALUE;
 	}
 	else if (type == PieceType::KING) {
-		return KING_VALUE;
+		return Infinity;
 	}
 	return 0;
 }
 
-int countMaterial(const Board& board, Color side) {
+int CountMaterial(const Board& board, Color side) {
 	Bitboard us = board.us(side);
 	int pawns = (board.pieces(PieceType::PAWN) & us).count() * PAWN_VALUE;
 	int knights = (board.pieces(PieceType::KNIGHT) & us).count() * KNIGHT_VALUE;
@@ -37,37 +37,21 @@ int countMaterial(const Board& board, Color side) {
 	return pawns + knights + bishops + rooks + queens;
 }
 
-int forceKingToCornerEndgameEval(Square friendlyKing, Square opponentKing, float endgameWeight) {
-	int evaluation = 0;
-
-	int opponentKingDstFromCenter = Square::distance(opponentKing, Square(File::FILE_D, Rank::RANK_4));
-	evaluation += opponentKingDstFromCenter;
-
-	int dstBetweenKings = Square::distance(friendlyKing, opponentKing);
-	evaluation += 14 - dstBetweenKings;
-
-	return evaluation * 10 * endgameWeight;
-}
-
-int evaluate(const Board& board) {
-	int whiteEval = countMaterial(board, Color::WHITE);
-	int blackEval = countMaterial(board, Color::BLACK);
+int Evaluate(const Board& board) {
+	int whiteEval = CountMaterial(board, Color::WHITE);
+	int blackEval = CountMaterial(board, Color::BLACK);
 
 	int evaluation = whiteEval - blackEval;
 
-	if(board.sideToMove() == Color::BLACK) evaluation = -evaluation;
-
-	float endgameWeight = evaluation / 14.0f;
-	evaluation -= forceKingToCornerEndgameEval(board.kingSq(board.sideToMove()), board.kingSq(~board.sideToMove()), endgameWeight);
-
-	return evaluation;
+	if (board.sideToMove() == Color::WHITE) {
+		return evaluation;
+	}
+	else {
+		return -evaluation;
+	}
 }
 
-bool compareMoves(Move a, Move b) {
-	return a.score() > b.score();
-}
-
-PieceType getPieceType(const Board& board, Square square) {
+PieceType GetPieceType(const Board& board, Square square) {
 	Bitboard squareBit;
 	squareBit = squareBit |= (1ULL << square.index());
 	uint64_t pawn = (squareBit & board.pieces(PieceType::PAWN)).getBits();
@@ -91,140 +75,42 @@ PieceType getPieceType(const Board& board, Square square) {
 	return PieceType::NONE;
 }
 
-int calculateMoveScore(const Board& board, Move move) {
-	int moveScoreGuess = 0;
-	PieceType fromType = getPieceType(board, move.from());
-	PieceType toType = getPieceType(board, move.to());
+int Search(Board board, int depth) {
+	if(depth == 0) return Evaluate(board);
 
-	if (toType != PieceType::NONE) {
-		moveScoreGuess = 10 * getPieceValue(toType) - getPieceValue(fromType);
-	}
-
-	if (move == Move::PROMOTION) {
-		moveScoreGuess += getPieceValue(move.promotionType());
-	}
-
-	if (board.isAttacked(move.to(), ~board.sideToMove())) {
-		moveScoreGuess -= getPieceValue(fromType);
-	}
-
-	return moveScoreGuess;
-}
-
-int searchAllCaptures(Board board, int alpha, int beta) {
-	int evaluation = evaluate(board);
-	if(evaluation >= beta) {
-		return beta;
-	}
-	alpha = std::max(alpha, evaluation);
-
-	Movelist moves;
-	movegen::legalmoves(moves, board);
-	for (auto& move : moves) {
-		move.setScore(calculateMoveScore(board, move));
-	}
-	std::sort(moves.begin(), moves.end(), compareMoves);
-
-	for (const auto& move : moves) {
-		if(board.isCapture(move)){
-			board.makeMove(move);
-			evaluation = -searchAllCaptures(board, -beta, -alpha);
-			board.unmakeMove(move);
-			if (evaluation >= beta) {
-				return beta;
-			}
-			alpha = std::max(alpha, evaluation);
-		}
-	}
-
-	return alpha;
-}
-
-int oldSearch(Board board, int depth) {
-	if (depth == 0) return searchAllCaptures(board, -KING_VALUE, KING_VALUE);
 	Movelist moves;
 	movegen::legalmoves(moves, board);
 	if(moves.size() == 0) {
 		if(board.inCheck()) {
-			return -KING_VALUE;
+			return -Infinity;
 		}
 		return 0;
 	}
-	int bestEval = -KING_VALUE;
-	for(auto& move: moves) {
+
+	int bestEvaluation = -Infinity;
+	for(auto& move : moves) {
 		board.makeMove(move);
-		int eval = -oldSearch(board, depth - 1);
-		bestEval = std::max(eval, bestEval);
+		int evaluation = -Search(board, depth-1);
+		bestEvaluation = std::max(evaluation, bestEvaluation);
 		board.unmakeMove(move);
 	}
-	return bestEval;
+
+	return bestEvaluation;
 }
 
-int search(Board board, int depth, int alpha, int beta) {
-	if (depth == 0) {
-		return searchAllCaptures(board, alpha, beta);
-	}
-
+Move FindBestMove(Board board, int searchDepth) {
 	Movelist moves;
 	movegen::legalmoves(moves, board);
-	if (moves.size() == 0) {
-		if (board.inCheck()) {
-			return -KING_VALUE;
-		}
-		return 0;
-	}
-	for (auto& move : moves) {
-		move.setScore(calculateMoveScore(board, move));
-	}
-	std::sort(moves.begin(), moves.end(), compareMoves);
-
-	for (const auto& move : moves) {
-		board.makeMove(move);
-		int eval = -search(board, depth - 1, -beta, -alpha);
-		board.unmakeMove(move);
-		if (eval >= beta) {
-			return beta;
-		}
-		alpha = std::max(alpha, eval);
-	}
-
-	return alpha;
-}
-
-void worker(const Board& board, int searchDepth, int* result) {
-	int evaluation = -search(board, searchDepth, -KING_VALUE, KING_VALUE);
-	*result = evaluation;
-}
-
-Move findBestMove(Board board, int searchDepth) {
-	Movelist moves;
-	movegen::legalmoves(moves, board);
-	for (auto& move : moves) {
-		move.setScore(calculateMoveScore(board, move));
-	}
-	std::sort(moves.begin(), moves.end(), compareMoves);
-
-	std::vector<std::thread> threads;
-	std::vector<int> evaluations(moves.size());
-
-	for (int i = 0; i < moves.size(); i++) {
-		board.makeMove(moves[i]);
-		threads.push_back(std::thread(worker, board, searchDepth, &evaluations[i]));
-		board.unmakeMove(moves[i]);
-	}
-
-	for (int i = 0; i < threads.size(); i++) {
-		threads[i].join();
-	}
-
-	int bestMoveEval = -KING_VALUE;
+	int bestMoveEvaluation = -Infinity;
 	int bestMoveIndex = 0;
-	for (int i = 0; i < evaluations.size(); i++) {
-		if (evaluations[i] > bestMoveEval) {
-			bestMoveEval = evaluations[i];
+	for(unsigned int i = 0; i < moves.size(); i++) {
+		board.makeMove(moves[i]);
+		int evaluation = -Search(board, searchDepth-1);
+		if (evaluation > bestMoveEvaluation) {
+			bestMoveEvaluation = evaluation;
 			bestMoveIndex = i;
 		}
+		board.unmakeMove(moves[i]);
 	}
-
 	return moves[bestMoveIndex];
 }
