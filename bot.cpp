@@ -37,25 +37,11 @@ int countMaterial(const Board& board, Color side) {
 	return pawns + knights + bishops + rooks + queens;
 }
 
-int kingEndgameEval(Square friendlyKing, Square opponentKing, float endgameWeight) {
-	// 4K3/4P3/3q4/8/8/8/6k1/8 b - - 0 1 // black should move the king here
-	int evaluation = 0;
-
-	int dstBetweenKings = Square::distance(opponentKing, friendlyKing);
-	evaluation -= dstBetweenKings;
-
-	return (int)(evaluation * endgameWeight);
-}
-
 int evaluate(const Board& board) {
 	int whiteEval = countMaterial(board, Color::WHITE);
 	int blackEval = countMaterial(board, Color::BLACK);
 
 	int evaluation = whiteEval - blackEval;
-
-	float endGameEval = evaluation / 10.0f;
-	
-	evaluation += kingEndgameEval(board.kingSq(Color::WHITE), board.kingSq(Color::BLACK), endGameEval);
 
 	if(board.sideToMove() == Color::WHITE) {
 		return evaluation;
