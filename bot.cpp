@@ -5,28 +5,6 @@
 #include <iostream>
 #include <algorithm>
 
-int GetPieceValue(PieceType type) {
-	if (type == PieceType::PAWN) {
-		return PAWN_VALUE;
-	}
-	else if (type == PieceType::BISHOP) {
-		return BISHOP_VALUE;
-	}
-	else if (type == PieceType::ROOK) {
-		return ROOK_VALUE;
-	}
-	else if (type == PieceType::QUEEN) {
-		return QUEEN_VALUE;
-	}
-	else if (type == PieceType::KNIGHT) {
-		return KNIGHT_VALUE;
-	}
-	else if (type == PieceType::KING) {
-		return Infinity;
-	}
-	return 0;
-}
-
 int CountMaterial(const Board& board, Color side) {
 	Bitboard us = board.us(side);
 	int pawns = (board.pieces(PieceType::PAWN) & us).count() * PAWN_VALUE;
@@ -49,30 +27,6 @@ int Evaluate(const Board& board) {
 	else {
 		return -evaluation;
 	}
-}
-
-PieceType GetPieceType(const Board& board, Square square) {
-	Bitboard squareBit;
-	squareBit = squareBit |= (1ULL << square.index());
-	uint64_t pawn = (squareBit & board.pieces(PieceType::PAWN)).getBits();
-	if (pawn) return PieceType::PAWN;
-
-	uint64_t bishop = (squareBit & board.pieces(PieceType::BISHOP)).getBits();
-	if (bishop) return PieceType::BISHOP;
-
-	uint64_t knight = (squareBit & board.pieces(PieceType::KNIGHT)).getBits();
-	if (knight) return PieceType::KNIGHT;
-
-	uint64_t rook = (squareBit & board.pieces(PieceType::ROOK)).getBits();
-	if (rook) return PieceType::ROOK;
-
-	uint64_t queen = (squareBit & board.pieces(PieceType::QUEEN)).getBits();
-	if (queen) return PieceType::QUEEN;
-
-	uint64_t king = (squareBit & board.pieces(PieceType::KING)).getBits();
-	if (king) return PieceType::KING;
-
-	return PieceType::NONE;
 }
 
 int Search(Board board, int depth) {
