@@ -37,16 +37,29 @@ int countMaterial(const Board& board, Color side) {
 	return pawns + knights + bishops + rooks + queens;
 }
 
+int kingEndgameEval(Square friendlyKing, Square opponentKing, float endgameWeight) {
+	// 4K3/4P3/3q4/8/8/8/6k1/8 b - - 0 1 // black should move the king here
+	int evaluation = 0;
+
+	int dstBetweenKings = Square::distance(opponentKing, friendlyKing);
+	evaluation -= dstBetweenKings;
+
+	return (int)(evaluation * endgameWeight);
+}
+
 int evaluate(const Board& board) {
 	int whiteEval = countMaterial(board, Color::WHITE);
 	int blackEval = countMaterial(board, Color::BLACK);
 
 	int evaluation = whiteEval - blackEval;
 
-	if (board.sideToMove() == Color::WHITE) {
+	float endGameEval = evaluation / 10.0f;
+	
+	evaluation += kingEndgameEval(board.kingSq(Color::WHITE), board.kingSq(Color::BLACK), endGameEval);
+
+	if(board.sideToMove() == Color::WHITE) {
 		return evaluation;
-	}
-	else {
+	} else {
 		return -evaluation;
 	}
 }
@@ -99,7 +112,7 @@ int calculateMoveScore(const Board& board, Move move) {
 	return moveScoreGuess;
 }
 
-int search(Board board, int depth, int ply, int alpha, int beta) {
+int search(Board board, int depth, int alpha, int beta) {
 	if (depth == 0) {
 		return evaluate(board);
 	}
@@ -119,7 +132,7 @@ int search(Board board, int depth, int ply, int alpha, int beta) {
 
 	for (const auto& move : moves) {
 		board.makeMove(move);
-		int eval = -search(board, depth - 1, ply + 1, -beta, -alpha) - ply;
+		int eval = -search(board, depth - 1, -beta, -alpha);
 		board.unmakeMove(move);
 		if (eval >= beta) {
 			return beta;
@@ -131,7 +144,7 @@ int search(Board board, int depth, int ply, int alpha, int beta) {
 }
 
 void worker(const Board& board, int searchDepth, int* result) {
-	int evaluation = -search(board, searchDepth, 0, -KING_VALUE, KING_VALUE);
+	int evaluation = -search(board, searchDepth, -KING_VALUE, KING_VALUE);
 	*result = evaluation;
 }
 
