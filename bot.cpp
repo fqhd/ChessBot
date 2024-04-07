@@ -98,7 +98,7 @@ int calculateMoveScore(const Board& board, Move move) {
 	return moveScoreGuess;
 }
 
-int search(Board board, int depth, int alpha, int beta) {
+int search(Board board, int depth, int ply, int alpha, int beta) {
 	if (depth == 0) {
 		return evaluate(board);
 	}
@@ -118,7 +118,7 @@ int search(Board board, int depth, int alpha, int beta) {
 
 	for (const auto& move : moves) {
 		board.makeMove(move);
-		int eval = -search(board, depth - 1, -beta, -alpha);
+		int eval = -search(board, depth - 1, ply + 1, -beta, -alpha) - ply;
 		board.unmakeMove(move);
 		if (eval >= beta) {
 			return beta;
@@ -130,7 +130,7 @@ int search(Board board, int depth, int alpha, int beta) {
 }
 
 void worker(const Board& board, int searchDepth, int* result) {
-	int evaluation = -search(board, searchDepth, -KING_VALUE, KING_VALUE);
+	int evaluation = -search(board, searchDepth, 0, -KING_VALUE, KING_VALUE);
 	*result = evaluation;
 }
 
