@@ -43,9 +43,10 @@ int evaluate(const Board& board) {
 
 	int evaluation = whiteEval - blackEval;
 
-	if(board.sideToMove() == Color::WHITE) {
+	if (board.sideToMove() == Color::WHITE) {
 		return evaluation;
-	} else {
+	}
+	else {
 		return -evaluation;
 	}
 }
@@ -107,7 +108,7 @@ int search(Board board, int depth, int ply, int alpha, int beta) {
 	movegen::legalmoves(moves, board);
 	if (moves.size() == 0) {
 		if (board.inCheck()) {
-			return -KING_VALUE;
+			return -KING_VALUE + ply;
 		}
 		return 0;
 	}
@@ -118,7 +119,7 @@ int search(Board board, int depth, int ply, int alpha, int beta) {
 
 	for (const auto& move : moves) {
 		board.makeMove(move);
-		int eval = -search(board, depth - 1, ply + 1, -beta, -alpha) - ply;
+		int eval = -search(board, depth - 1, ply + 1, -beta, -alpha);
 		board.unmakeMove(move);
 		if (eval >= beta) {
 			return beta;

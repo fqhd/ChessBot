@@ -18,7 +18,7 @@ int evaluate(const Board& board);
 bool compareMoves(Move a, Move b);
 PieceType getPieceType(const Board& board, Square square);
 int calculateMoveScore(const Board& board, Move move);
-int search(Board board, int depth, int alpha, int beta);
+int search(Board board, int depth, int ply, int alpha, int beta);
 void worker(const Board& board, int searchDepth, int* result);
 Move findBestMove(Board board, int searchDepth);
 int oldSearch(Board board, int depth);
