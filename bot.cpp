@@ -5,6 +5,8 @@
 #include <iostream>
 #include <algorithm>
 
+
+
 int getPieceValue(PieceType type) {
 	if (type == PieceType::PAWN) {
 		return PAWN_VALUE;
@@ -98,6 +100,8 @@ int calculateMoveScore(const Board& board, Move move) {
 
 	return moveScoreGuess;
 }
+
+int captureSearch()
 
 int search(Board board, int depth, int ply, int alpha, int beta) {
 	if (depth == 0) {
