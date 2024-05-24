@@ -101,8 +101,6 @@ int calculateMoveScore(const Board& board, Move move) {
 	return moveScoreGuess;
 }
 
-int captureSearch()
-
 int search(Board board, int depth, int ply, int alpha, int beta) {
 	if (depth == 0) {
 		return evaluate(board);
