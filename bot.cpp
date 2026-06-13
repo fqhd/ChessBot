@@ -41,11 +41,11 @@ void order_moves(Board board, Movelist& moves) {
 
 int score_move(Board board, Move move) {
 	int move_score_guess = 0;
-	PieceType fromType = get_piece_type(board, move.from());
-	PieceType toType = get_piece_type(board, move.to());
+	PieceType from = get_piece_type(board, move.from());
+	PieceType to = get_piece_type(board, move.to());
 
-	if (toType != PieceType::NONE) {
-		move_score_guess = 10 * get_piece_value(toType) - get_piece_value(fromType);
+	if (to != PieceType::NONE) {
+		move_score_guess = 10 * get_piece_value(to) - get_piece_value(from);
 	}
 
 	if (move == Move::PROMOTION) {
@@ -53,41 +53,41 @@ int score_move(Board board, Move move) {
 	}
 
 	if (board.isAttacked(move.to(), ~board.sideToMove())) {
-		move_score_guess -= get_piece_value(fromType);
+		move_score_guess -= get_piece_value(from);
 	}
 
 	return move_score_guess;
 }
 
 PieceType get_piece_type(Board board, Square square) {
-	Bitboard squareBit;
-	squareBit = squareBit |= (1ULL << square.index());
-	uint64_t pawn = (squareBit & board.pieces(PieceType::PAWN)).getBits();
+	Bitboard square_bb;
+	square_bb = square_bb |= (1ULL << square.index());
+	uint64_t pawn = (square_bb & board.pieces(PieceType::PAWN)).getBits();
 	if (pawn) return PieceType::PAWN;
 
-	uint64_t bishop = (squareBit & board.pieces(PieceType::BISHOP)).getBits();
+	uint64_t bishop = (square_bb & board.pieces(PieceType::BISHOP)).getBits();
 	if (bishop) return PieceType::BISHOP;
 
-	uint64_t knight = (squareBit & board.pieces(PieceType::KNIGHT)).getBits();
+	uint64_t knight = (square_bb & board.pieces(PieceType::KNIGHT)).getBits();
 	if (knight) return PieceType::KNIGHT;
 
-	uint64_t rook = (squareBit & board.pieces(PieceType::ROOK)).getBits();
+	uint64_t rook = (square_bb & board.pieces(PieceType::ROOK)).getBits();
 	if (rook) return PieceType::ROOK;
 
-	uint64_t queen = (squareBit & board.pieces(PieceType::QUEEN)).getBits();
+	uint64_t queen = (square_bb & board.pieces(PieceType::QUEEN)).getBits();
 	if (queen) return PieceType::QUEEN;
 
-	uint64_t king = (squareBit & board.pieces(PieceType::KING)).getBits();
+	uint64_t king = (square_bb & board.pieces(PieceType::KING)).getBits();
 	if (king) return PieceType::KING;
 
 	return PieceType::NONE;
 }
 
 int evaluate(Board board) {
-	int whiteEval = count_material(board, Color::WHITE);
-	int blackEval = count_material(board, Color::BLACK);
+	int white = count_material(board, Color::WHITE);
+	int black = count_material(board, Color::BLACK);
 
-	int evaluation = whiteEval - blackEval;
+	int evaluation = white - black;
 
 	if (board.sideToMove() == Color::WHITE) {
 		return evaluation;
