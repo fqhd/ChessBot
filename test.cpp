@@ -58,20 +58,31 @@ bool get_piece_type_test() {
     Board b2("3Q4/p1p2ppp/4k3/8/5P2/4P3/Prqn2PP/3R1RK1 b - - 0 22");
     Board b3("2r4k/q2b1Q1p/2p2P2/1p2p3/4P3/p2P3R/4N1K1/R7 b - - 0 38");
 
-    if (get_piece_type(b1, Square::underlying::SQ_A1) != PieceType::underlying::ROOK) return false;
-    if (get_piece_type(b1, Square::underlying::SQ_A2) != PieceType::underlying::PAWN) return false;
-    if (get_piece_type(b1, Square::underlying::SQ_A8) != PieceType::underlying::ROOK) return false;
-    if (get_piece_type(b1, Square::underlying::SQ_D1) != PieceType::underlying::QUEEN) return false;
+    if (get_piece_type(b1, Square::underlying::SQ_A1) != PieceType::ROOK) return false;
+    if (get_piece_type(b1, Square::underlying::SQ_A2) != PieceType::PAWN) return false;
+    if (get_piece_type(b1, Square::underlying::SQ_A8) != PieceType::ROOK) return false;
+    if (get_piece_type(b1, Square::underlying::SQ_D1) != PieceType::QUEEN) return false;
 
-    if (get_piece_type(b2, Square::underlying::SQ_B4) != PieceType::underlying::NONE) return false;
-    if (get_piece_type(b2, Square::underlying::SQ_C7) != PieceType::underlying::PAWN) return false;
-    if (get_piece_type(b2, Square::underlying::SQ_G5) != PieceType::underlying::NONE) return false;
-    if (get_piece_type(b2, Square::underlying::SQ_D2) != PieceType::underlying::KNIGHT) return false;
+    if (get_piece_type(b2, Square::underlying::SQ_B4) != PieceType::NONE) return false;
+    if (get_piece_type(b2, Square::underlying::SQ_C7) != PieceType::PAWN) return false;
+    if (get_piece_type(b2, Square::underlying::SQ_G5) != PieceType::NONE) return false;
+    if (get_piece_type(b2, Square::underlying::SQ_D2) != PieceType::KNIGHT) return false;
 
-    if (get_piece_type(b3, Square::underlying::SQ_D7) != PieceType::underlying::BISHOP) return false;
-    if (get_piece_type(b3, Square::underlying::SQ_A7) != PieceType::underlying::QUEEN) return false;
-    if (get_piece_type(b3, Square::underlying::SQ_H8) != PieceType::underlying::KING) return false;
-    if (get_piece_type(b3, Square::underlying::SQ_H1) != PieceType::underlying::NONE) return false;
+    if (get_piece_type(b3, Square::underlying::SQ_D7) != PieceType::BISHOP) return false;
+    if (get_piece_type(b3, Square::underlying::SQ_A7) != PieceType::QUEEN) return false;
+    if (get_piece_type(b3, Square::underlying::SQ_H8) != PieceType::KING) return false;
+    if (get_piece_type(b3, Square::underlying::SQ_H1) != PieceType::NONE) return false;
+
+    return true;
+}
+
+bool get_piece_value_test() {
+    if (get_piece_value(PieceType::PAWN) > get_piece_value(PieceType::BISHOP)) return false;
+    if (get_piece_value(PieceType::PAWN) > get_piece_value(PieceType::KNIGHT)) return false;
+    if (get_piece_value(PieceType::KNIGHT) > get_piece_value(PieceType::ROOK)) return false;
+    if (get_piece_value(PieceType::BISHOP) > get_piece_value(PieceType::ROOK)) return false;
+    if (get_piece_value(PieceType::ROOK) > get_piece_value(PieceType::QUEEN)) return false;
+    if (get_piece_value(PieceType::QUEEN) > get_piece_value(PieceType::KING)) return false;
 
     return true;
 }
@@ -81,5 +92,6 @@ int main() {
     std::cout << "Count Material: " << (count_material_test() ? "Pass" : "Fail") << std::endl;
     std::cout << "Evaluate: " << (evaluate_test() ? "Pass" : "Fail") << std::endl;
     std::cout << "Get Piece Type: " << (get_piece_type_test() ? "Pass" : "Fail") << std::endl;
+    std::cout << "Get Piece Value: " << (get_piece_value_test() ? "Pass" : "Fail") << std::endl;
 
 }
