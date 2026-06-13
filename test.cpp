@@ -30,8 +30,31 @@ bool count_material_test() {
     return true;
 }
 
+bool evaluate_test() {
+    Board b1("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); // 0
+    Board b2("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPP1/RNBQKBNR w KQkq - 0 1"); // -1
+    Board b3("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPP1/RNBQKB1R w KQkq - 0 1"); // -4
+    Board b4("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPP1/RNBQKB1R b KQkq - 0 1"); // 4
+    Board b5("1n1qkbnr/pppppppp/8/8/8/8/PPPPPPP1/RN2KB1R b KQk - 0 1"); // 8
+    Board b6("3k4/8/8/8/3PP3/3K4/8/8 w - - 0 1"); // 2
+    Board b7("3k2r1/8/8/8/3PP3/3K4/8/4BB2 b - - 0 1"); // -3
+    Board b8("6rq/8/2k5/8/3PP3/3K4/8/4BB2 b - - 0 1"); // 6
+
+    if (evaluate(b1) != 0) return false;
+    if (evaluate(b2) != -1) return false;
+    if (evaluate(b3) != -4) return false;
+    if (evaluate(b4) != 4) return false;
+    if (evaluate(b5) != 8) return false;
+    if (evaluate(b6) != 2) return false;
+    if (evaluate(b7) != -3) return false;
+    if (evaluate(b8) != 6) return false;
+
+    return true;
+}
+
 int main() {
 
     std::cout << "Count Material: " << (count_material_test() ? "Pass" : "Fail") << std::endl;
+    std::cout << "Evaluate: " << (evaluate_test() ? "Pass" : "Fail") << std::endl;
 
 }
