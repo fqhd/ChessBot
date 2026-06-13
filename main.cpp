@@ -17,5 +17,4 @@ int main(int argc, char* argv[])
 	std::string move = find_best_move(fen, depth);
 	std::cout << move << std::endl;
 #endif
-    return 0;
 }
